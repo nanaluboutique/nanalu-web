@@ -1,0 +1,37 @@
+name: Feature
+description: A new piece of functionality or an improvement
+title: "[feat] "
+labels: ["type:feature", "needs-triage"]
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: One or two sentences. What is this and why does it matter?
+    validations:
+      required: true
+
+  - type: textarea
+    id: motivation
+    attributes:
+      label: User story / motivation
+      description: "As a [user], I want [thing], so that [benefit]. Or just describe the problem this solves."
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: Checklist of what must be true for this to be considered done.
+      value: |
+        - [ ] 
+        - [ ] 
+    validations:
+      required: true
+
+  - type: textarea
+    id: notes
+    attributes:
+      label: Implementation notes
+      description: Optional. Sketch of approach, files involved, gotchas, design references.
