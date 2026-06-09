@@ -37,13 +37,13 @@ The site is a **custom build** (the configurator + meterage-based inventory can'
 
 | Layer | Choice | Notes |
 |---|---|---|
-| Language | **TypeScript** | Shared across web + future app |
+| Language | **TypeScript** | Shared across web + future app (assumes the app is **React Native** — our lean; see Phase 12) |
 | Web framework | **Next.js (React)** | SEO, image optimization, can serve the API |
 | Styling | **Tailwind CSS** | Custom handmade-brand design, not a template |
 | Database | **PostgreSQL** | Relational + transactional (stock safety) |
 | ORM | **Prisma** | Type-safe queries + migrations |
 | API | **Shared API layer** (Next.js) | Built so the future native app reuses it |
-| Object storage | **S3 / S3-compatible** | Portable across AWS / self-host / providers |
+| Image storage | **Cloudinary** (start) | Fast for our image-heavy configurator: uploads + on-the-fly transforms + CDN. Swappable later to an **S3-compatible** store — *not necessarily AWS* (e.g. Cloudflare R2, Supabase Storage) — via the image-access abstraction (§4) |
 | Payments | **Stripe** (+ possibly PayPal later) | Card data never touches our servers |
 
 **Deferred (decide at the relevant phase):**
@@ -51,7 +51,7 @@ The site is a **custom build** (the configurator + meterage-based inventory can'
 - **Hosting / deployment** — managed (Vercel) vs **AWS** vs **self-hosted**. DevOps available; decision depends on cost. → We build **deployment-agnostic** (Dockerizable Next.js `output: 'standalone'`; portable Postgres + S3-compatible storage) so this stays fully open.
 - **Auth provider** — Auth.js (self-hostable) vs Supabase Auth vs Clerk. Must support **email/password + social login** (Google/Apple/etc.).
 - **Stripe integration style** — Stripe Checkout (hosted) vs Payment Element (embedded).
-- **Image-processing layer** — whether to add Cloudinary on top of S3 for swatch transforms.
+- **Storage migration** — if/when we outgrow Cloudinary or move to AWS/self-host, migrate to an S3-compatible store (Cloudflare R2 / Supabase / Backblaze / S3). Kept cheap by the image-access abstraction. Decide later — **not** an AWS commitment.
 
 ---
 
@@ -62,6 +62,7 @@ The site is a **custom build** (the configurator + meterage-based inventory can'
   - Auth handled by a vetted provider; **never hand-rolled**. Passwords hashed, never stored in plaintext.
   - PII (addresses, etc.) encrypted at rest; HTTPS everywhere; least-privilege access.
 - **Deployment-agnostic** — no hard lock-in to one host (see deferred hosting).
+- **Swappable storage** — store image asset *keys* (not full provider URLs) in the DB and load every image through **one helper**, so we can move from Cloudinary to an S3-compatible store later with minimal churn. (The only real migration cost is re-creating Cloudinary's on-the-fly *transforms*, not the files.)
 - **App-ready API** — the website and the future native app share one backend.
 - **i18n-ready** — English first, but centralize copy so languages can be added later without a rewrite.
 - **Quality + learnability** — mainstream, well-documented tools; decisions explained as we go (one of us is junior, by design no compromise on quality).
@@ -81,6 +82,7 @@ The site is a **custom build** (the configurator + meterage-based inventory can'
 ### Phase 1 — Domain model & database
 - Design the schema: **Products**, **ReadyMadeItems** (unique in-stock iterations), **Materials** (fabric *or* color; per-material unit — meterage / skein / grams; swatch + real-world scale), **CustomizationConfig** (regions, slots, region↔slot mapping, meterage per slot), **Orders / OrderItems**, **Reservations** (with expiry), **Users/Customers**.
 - Prisma setup + migrations + **seed data** (so UI can be built against realistic data).
+- **Image-access abstraction**: store asset keys (not provider URLs); one helper builds image URLs (Cloudinary now, swappable later).
 - **Outcome:** the data backbone everything else builds on.
 
 ### Phase 2 — Catalog & product browsing (customer, read-only)
@@ -170,6 +172,6 @@ About/story page (in Phase 9), customer **reviews/testimonials**, **lead-time me
 
 ## 9. Decision log
 
-**Decided:** custom build · two-repo split (web now, app later) · stack in §3 · fixed price per customizable product · **stock reserved at add-to-cart, deducted on payment confirmation** (refunds/cancellations restock) · guest checkout allowed · quick-view modal for in-stock iterations · English first (i18n-ready) · Stripe (no card data on our servers) · deployment-agnostic · scale-accurate fabric fills + calibration tool.
+**Decided:** custom build · two-repo split (web now, app later) · stack in §3 · fixed price per customizable product · **stock reserved at add-to-cart, deducted on payment confirmation** (refunds/cancellations restock) · guest checkout allowed · quick-view modal for in-stock iterations · English first (i18n-ready) · Stripe (no card data on our servers) · deployment-agnostic · **start with Cloudinary** for image storage (swappable to S3-compatible later via the image-access abstraction; not an AWS commitment) · React Native as the app lean · scale-accurate fabric fills + calibration tool.
 
-**Deferred:** hosting/deployment target · auth provider · Stripe integration style · image-processing layer · adding more languages · PayPal.
+**Deferred:** hosting/deployment target · auth provider · Stripe integration style · storage migration (Cloudinary → S3-compatible) · adding more languages · PayPal.
