@@ -41,3 +41,32 @@ jobs:
         run: npm run build
         env:
           NEXT_TELEMETRY_DISABLED: "1"
+
+  docker:
+    name: Docker image build & smoke test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@v6
+
+      - name: Build the image
+        run: docker build -t nanalu-web:ci .
+
+      - name: Run the container
+        run: docker run -d -p 3000:3000 --name nl-test nanalu-web:ci
+
+      - name: Smoke test — wait for HTTP 200
+        run: |
+          for i in $(seq 1 30); do
+            code=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:3000 || true)
+            if [ "$code" = "200" ]; then echo "Served 200 ✓"; exit 0; fi
+            echo "waiting for container... attempt $i (got '$code')"
+            sleep 2
+          done
+          echo "Container did not serve HTTP 200 in time"
+          docker logs nl-test
+          exit 1
+
+      - name: Clean up
+        if: always()
+        run: docker rm -f nl-test
