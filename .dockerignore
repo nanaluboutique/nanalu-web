@@ -1,0 +1,21 @@
+# Dependencies & build output (reinstalled / rebuilt inside the image)
+node_modules
+.next
+out
+
+# Git & Docker meta
+.git
+.gitignore
+.dockerignore
+Dockerfile
+
+# Tooling / editor / CI (not needed in the image)
+.github
+.vscode
+
+# Local env files (never bake secrets into an image)
+.env*.local
+
+# Misc
+npm-debug.log*
+*.md
