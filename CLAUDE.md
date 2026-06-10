@@ -19,7 +19,7 @@ Sibling repo: **`nanaluboutique/nanalu-app`** (future native app, dormant for no
 **Decided:** TypeScript · Next.js (React) · Tailwind CSS · PostgreSQL · Prisma · shared API layer · **Cloudinary** image storage (swappable later via an image-access abstraction) · Stripe.
 **Deferred:** hosting/deployment (build deployment-agnostic) · auth provider · Stripe integration style · storage migration (Cloudinary → S3-compatible).
 
-*(Exact versions, configs, and rationale: **TODO after Phase 0**. Full reasoning is in PLAN.md §3.)*
+_(Exact versions, configs, and rationale: **TODO after Phase 0**. Full reasoning is in PLAN.md §3.)_
 
 ---
 

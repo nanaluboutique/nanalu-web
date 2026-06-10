@@ -20,7 +20,7 @@ The site is a **custom build** (the configurator + meterage-based inventory can'
 ## 2. The configurator (the core, distinctive feature)
 
 - Each customizable product has an **outline (SVG)** divided into fillable **regions**.
-- Regions are grouped into **slots** (e.g. *top*, *bottom*); filling one region fills every region in its slot — so "this fabric appears in several places" works automatically. Slots are defined in admin.
+- Regions are grouped into **slots** (e.g. _top_, _bottom_); filling one region fills every region in its slot — so "this fabric appears in several places" works automatically. Slots are defined in admin.
 - The buyer picks a **material** and "paint-buckets" it into a slot:
   - **Patterned fabric** → rendered as a tiled SVG pattern of the calibrated swatch image, **at real-world scale** (a 1 cm flower reads as 1 cm on a 10 cm product).
   - **Solid color** (for any color-only knit/crochet) → a flat fill; no scale/tiling needed.
@@ -35,16 +35,16 @@ The site is a **custom build** (the configurator + meterage-based inventory can'
 
 **Decided:**
 
-| Layer | Choice | Notes |
-|---|---|---|
-| Language | **TypeScript** | Shared across web + future app (assumes the app is **React Native** — our lean; see Phase 12) |
-| Web framework | **Next.js (React)** | SEO, image optimization, can serve the API |
-| Styling | **Tailwind CSS** | Custom handmade-brand design, not a template |
-| Database | **PostgreSQL** | Relational + transactional (stock safety) |
-| ORM | **Prisma** | Type-safe queries + migrations |
-| API | **Shared API layer** (Next.js) | Built so the future native app reuses it |
-| Image storage | **Cloudinary** (start) | Fast for our image-heavy configurator: uploads + on-the-fly transforms + CDN. Swappable later to an **S3-compatible** store — *not necessarily AWS* (e.g. Cloudflare R2, Supabase Storage) — via the image-access abstraction (§4) |
-| Payments | **Stripe** (+ possibly PayPal later) | Card data never touches our servers |
+| Layer         | Choice                               | Notes                                                                                                                                                                                                                              |
+| ------------- | ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Language      | **TypeScript**                       | Shared across web + future app (assumes the app is **React Native** — our lean; see Phase 12)                                                                                                                                      |
+| Web framework | **Next.js (React)**                  | SEO, image optimization, can serve the API                                                                                                                                                                                         |
+| Styling       | **Tailwind CSS**                     | Custom handmade-brand design, not a template                                                                                                                                                                                       |
+| Database      | **PostgreSQL**                       | Relational + transactional (stock safety)                                                                                                                                                                                          |
+| ORM           | **Prisma**                           | Type-safe queries + migrations                                                                                                                                                                                                     |
+| API           | **Shared API layer** (Next.js)       | Built so the future native app reuses it                                                                                                                                                                                           |
+| Image storage | **Cloudinary** (start)               | Fast for our image-heavy configurator: uploads + on-the-fly transforms + CDN. Swappable later to an **S3-compatible** store — _not necessarily AWS_ (e.g. Cloudflare R2, Supabase Storage) — via the image-access abstraction (§4) |
+| Payments      | **Stripe** (+ possibly PayPal later) | Card data never touches our servers                                                                                                                                                                                                |
 
 **Deferred (decide at the relevant phase):**
 
@@ -62,7 +62,7 @@ The site is a **custom build** (the configurator + meterage-based inventory can'
   - Auth handled by a vetted provider; **never hand-rolled**. Passwords hashed, never stored in plaintext.
   - PII (addresses, etc.) encrypted at rest; HTTPS everywhere; least-privilege access.
 - **Deployment-agnostic** — no hard lock-in to one host (see deferred hosting).
-- **Swappable storage** — store image asset *keys* (not full provider URLs) in the DB and load every image through **one helper**, so we can move from Cloudinary to an S3-compatible store later with minimal churn. (The only real migration cost is re-creating Cloudinary's on-the-fly *transforms*, not the files.)
+- **Swappable storage** — store image asset _keys_ (not full provider URLs) in the DB and load every image through **one helper**, so we can move from Cloudinary to an S3-compatible store later with minimal churn. (The only real migration cost is re-creating Cloudinary's on-the-fly _transforms_, not the files.)
 - **App-ready API** — the website and the future native app share one backend.
 - **i18n-ready** — English first, but centralize copy so languages can be added later without a rewrite.
 - **Quality + learnability** — mainstream, well-documented tools; decisions explained as we go (one of us is junior, by design no compromise on quality).
@@ -74,18 +74,21 @@ The site is a **custom build** (the configurator + meterage-based inventory can'
 > Phases are sequenced by dependency. Security, accessibility, and tests are **cross-cutting** — addressed within every phase, with a dedicated hardening pass near the end.
 
 ### Phase 0 — Foundations & project setup
+
 - Next.js + TypeScript + Tailwind scaffold; ESLint/Prettier; CI (GitHub Actions).
 - Dockerizable build (`output: 'standalone'`) from day one for deployment portability.
 - Design-system foundations: brand identity, color tokens, typography, base components, layout shell, routing structure.
 - **Outcome:** a running, styled, empty app that deploys anywhere.
 
 ### Phase 1 — Domain model & database
-- Design the schema: **Products**, **ReadyMadeItems** (unique in-stock iterations), **Materials** (fabric *or* color; per-material unit — meterage / skein / grams; swatch + real-world scale), **CustomizationConfig** (regions, slots, region↔slot mapping, meterage per slot), **Orders / OrderItems**, **Reservations** (with expiry), **Users/Customers**.
+
+- Design the schema: **Products**, **ReadyMadeItems** (unique in-stock iterations), **Materials** (fabric _or_ color; per-material unit — meterage / skein / grams; swatch + real-world scale), **CustomizationConfig** (regions, slots, region↔slot mapping, meterage per slot), **Orders / OrderItems**, **Reservations** (with expiry), **Users/Customers**.
 - Prisma setup + migrations + **seed data** (so UI can be built against realistic data).
 - **Image-access abstraction**: store asset keys (not provider URLs); one helper builds image URLs (Cloudinary now, swappable later).
 - **Outcome:** the data backbone everything else builds on.
 
 ### Phase 2 — Catalog & product browsing (customer, read-only)
+
 - Home/catalog page: product grid, **filtering**, optional **search**.
 - Product page: image **carousel**, product info, **in-stock iterations** as thumbnails → **quick-view modal** (more photos + that piece's fabric info), **Customize** button or "not customizable" note.
 - Footer scaffold with (placeholder) legal/info links.
@@ -93,54 +96,64 @@ The site is a **custom build** (the configurator + meterage-based inventory can'
 - **Outcome:** customers can browse the shop.
 
 ### Phase 3 — The customization configurator (centerpiece) 🧶
+
 - SVG outline + regions + slots; material picker; **paint-bucket fill**.
 - Patterned fabric (tiled, **real-world scale**) and solid-color paths.
 - Live preview + fixed price; "add customized item to cart".
 - **Outcome:** the signature feature works end-to-end (minus payment).
 
 ### Phase 4 — Cart & stock reservations
+
 - Cart page + **hover/slide-out sidebar** preview.
 - **Reservation/hold system**: adding to cart reserves stock for X minutes; expiry releases it; cleanup job; **re-check at checkout** with "this fabric is now out of stock" handling.
 - **Outcome:** a working cart that protects one-of-a-kind stock.
 
 ### Phase 5 — Checkout & payments (Stripe)
+
 - **Guest checkout** (account optional); shipping/contact capture.
 - Stripe integration; **webhook = source of truth for "paid"** → create order, **deduct stock/meterage** (converts the reservation into an actual deduction), send confirmation.
 - **Outcome:** customers can actually buy (ready-made + customized).
 
 ### Phase 6 — Authentication & customer accounts
+
 - **Email/password + social login** (provider chosen here).
 - Wire up the previously-stubbed **login** and **favorites**; **order history**.
 - Secure session handling.
 - **Outcome:** real accounts; foundation reused by admin.
 
 ### Phase 7 — Admin: products & inventory
+
 - **Secure admin login**.
 - Product CRUD (info, photos, in-stock iterations); customization config (outline, slots, meterage per slot).
 - Materials/fabrics/yarn CRUD + **stock**, plus the **Fabric Calibration Tool**.
 - **Outcome:** the sisters can manage the real catalog + stock (replaces seed data).
 
 ### Phase 8 — Admin: orders & fulfillment
-- Order dashboard: incoming paid orders, customer/shipping details, status flow (*new → in progress → shipped → done*).
+
+- Order dashboard: incoming paid orders, customer/shipping details, status flow (_new → in progress → shipped → done_).
 - **Refunds/cancellations** (which **restock** materials); (later) shipping labels.
-- *(Note: stock was already deducted at payment in Phase 5 — fulfillment here is about status & exceptions, not deduction.)*
+- _(Note: stock was already deducted at payment in Phase 5 — fulfillment here is about status & exceptions, not deduction.)_
 - **Outcome:** day-to-day fulfillment is runnable.
 
 ### Phase 9 — Legal, content & trust
+
 - **Impressum**, **Privacy/GDPR**, **cookie consent**, **T&C**, **shipping info**, **refunds/returns** — including the **EU right-of-withdrawal exemption for custom-made goods** (surfaced on the configurator and/or at checkout).
 - **FAQ**, **knit/crochet care guide** (footer + on product pages + order email), **About / "the two sisters"** story.
 - **Outcome:** legally sound + trustworthy.
 
 ### Phase 10 — Polish, security hardening, SEO & performance
+
 - Dedicated **security audit/hardening** pass; accessibility pass.
 - SEO (metadata, sitemap, structured data), analytics, performance/image optimization, error monitoring.
 - **Outcome:** launch-ready quality.
 
 ### Phase 11 — Launch
+
 - Finalize **hosting decision** with DevOps (AWS / self-host / managed); production env + secrets; backups; monitoring; go-live.
 - **Outcome:** Nanalu Boutique is live. 🎉
 
-### Phase 12 — Native app *(future, separate repo)*
+### Phase 12 — Native app _(future, separate repo)_
+
 - React Native (Expo) consuming the shared API.
 
 ---
