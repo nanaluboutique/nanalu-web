@@ -30,6 +30,7 @@ _(Exact versions, configs, and rationale: **TODO after Phase 0**. Full reasoning
 - **One PR per issue.** PR body includes `Closes #<issue#>` and uses the PR template.
 - **Review before merge** — the other sister and/or `/code-review`. Run **`/security-review`** on anything touching **auth, payments, or user data**.
 - **Merge:** squash + delete branch.
+- **AI agent — ask first.** Claude must get an explicit maintainer go-ahead before each **commit, push, PR creation, or merge** — never on its own initiative. Doing the work (edits, builds, lint/tests, creating branches, moving board cards) is fine without asking; "CI is green" / "approved" is **not** authorization to merge.
 - **`main` is always deployable.** Don't commit directly to `main`.
 - **Create issues via the `gh-issue-create` skill** → they auto-add to the Project board.
 - **Commits:** concise, imperative ("add product carousel"), not "fixed stuff".
