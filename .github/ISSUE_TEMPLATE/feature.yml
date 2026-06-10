@@ -26,7 +26,7 @@ body:
       description: Checklist of what must be true for this to be considered done.
       value: |
         - [ ] 
-        - [ ] 
+        - [ ]
     validations:
       required: true
 

@@ -1,0 +1,12 @@
+# Build output & deps
+.next/
+out/
+build/
+node_modules/
+
+# Generated / lockfiles
+package-lock.json
+next-env.d.ts
+
+# Assets we don't format
+public/
