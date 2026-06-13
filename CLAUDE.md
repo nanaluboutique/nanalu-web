@@ -62,3 +62,8 @@ _(Exact versions, configs, and rationale: **TODO after Phase 0**. Full reasoning
 ## Deployment
 
 **TODO (Phase 11)** — depends on the deferred hosting decision; keep the build deployment-agnostic (Dockerizable, portable Postgres + S3-compatible storage) until then.
+
+## Frontend gotchas / lessons
+
+- **Don't force `-webkit-font-smoothing: antialiased`** (the `antialiased` class `create-next-app` puts on `<html>`, or the equivalent CSS). It's a **macOS-only** override that switches text to grayscale smoothing, rendering the same font weight **thinner** than the OS default — making the app look lighter than our mockups (which were authored without it). We render at the platform default instead. Only consider re-adding it locally for **light-text-on-dark** UI, where the default can look too heavy. (Removed in #9.)
+- **Mockups are the spec, not a starting point.** `docs/brand.md` + `mockups/*.html` hold exact values (padding, line-height, transitions, hex). When porting a component, copy the mockup CSS verbatim — don't "improve" it. The base UI primitives live in `src/components/ui` and pull from `@theme` tokens in `globals.css`; never hardcode hex.
