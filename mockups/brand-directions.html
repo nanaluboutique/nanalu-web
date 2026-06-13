@@ -1,0 +1,774 @@
+<!doctype html>
+<html lang="en" data-theme="t1">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Nanalu Boutique — brand direction mockups</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Karla:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  /* ============================================================
+     THEMES — only these variables change between palettes.
+     Layout, type, and content are identical across all five.
+     ============================================================ */
+
+  /* 1 · Stone & Olive — main #aaa7a1 · accent #9fa264
+     trick: navbar keeps the light stone with dark text;
+     primary buttons use the one-step-deeper stone #706c65. */
+  [data-theme="t1"] {
+    --bg: #faf8f3;
+    --ink: #3e3a33;
+    --ink-soft: #6e6960;
+    --main: #aaa7a1;
+    --main-deep: #706c65;
+    --accent: #9fa264;
+    --accent-deep: #797239;
+    --nav-bg: #aaa7a1;
+    --nav-ink: #2f2c27;
+    --btn-bg: #706c65;
+    --btn-ink: #fdfcfa;
+    --btn2-bg: #9fa264;
+    --btn2-ink: #29280f;
+    --band-bg: #706c65;
+    --band-ink: #f4f2ed;
+    --band-accent: #c3c59f;
+    --chip-bg: #e6e2d6;
+    --chip-ink: #575935;
+    --card-bg: #ffffff;
+    --heading: #4a463f;
+    --logo-yarn: #c3c59f;
+    --logo-swatch: #e9e7e0;
+    --logo-plaid: #aaa7a1;
+    --logo-line: #575145;
+    --logo-cap: #9fa264;
+  }
+
+  /* 2 · Plum & Cream — main #533B4D · accent #FAEDCA (+ rose #B48E92)
+     trick: cream accents live ON plum surfaces where they pop;
+     dusty rose handles standalone accents on the white page. */
+  [data-theme="t2"] {
+    --bg: #ffffff;
+    --ink: #3a2c36;
+    --ink-soft: #75636f;
+    --main: #533B4D;
+    --main-deep: #3e2b39;
+    --accent: #FAEDCA;
+    --accent-deep: #B48E92;
+    --nav-bg: #533B4D;
+    --nav-ink: #FAEDCA;
+    --btn-bg: #533B4D;
+    --btn-ink: #FAEDCA;
+    --btn2-bg: #B48E92;
+    --btn2-ink: #33161e;
+    --band-bg: #533B4D;
+    --band-ink: #FAEDCA;
+    --band-accent: #FAEDCA;
+    --chip-bg: #f6e9e6;
+    --chip-ink: #7c4a52;
+    --card-bg: #fdfbf6;
+    --heading: #533B4D;
+    --logo-yarn: #d8b9bc;
+    --logo-swatch: #FAEDCA;
+    --logo-plaid: #B48E92;
+    --logo-line: #533B4D;
+    --logo-cap: #B48E92;
+  }
+
+  /* 3 · Camel & Dusty Pink — main #deb28e · accent #dfb9b8
+     trick: both picks are pastels, so text goes deep burgundy
+     #7f2a2e (from the same swatch) instead of white. */
+  [data-theme="t3"] {
+    --bg: #fdf9f3;
+    --ink: #46302c;
+    --ink-soft: #8a6f63;
+    --main: #deb28e;
+    --main-deep: #7f2a2e;
+    --accent: #dfb9b8;
+    --accent-deep: #7f2a2e;
+    --nav-bg: #deb28e;
+    --nav-ink: #5d1d20;
+    --btn-bg: #7f2a2e;
+    --btn-ink: #fbeee0;
+    --btn2-bg: #dfb9b8;
+    --btn2-ink: #5d1d20;
+    --band-bg: #7f2a2e;
+    --band-ink: #f7e3d2;
+    --band-accent: #deb28e;
+    --chip-bg: #f4ddd9;
+    --chip-ink: #7f2a2e;
+    --card-bg: #ffffff;
+    --heading: #7f2a2e;
+    --logo-yarn: #dfb9b8;
+    --logo-swatch: #f0d9bd;
+    --logo-plaid: #c08a5d;
+    --logo-line: #7f2a2e;
+    --logo-cap: #7f2a2e;
+  }
+
+  /* 4 · Lavender & Sage — main #B39FB5 · accent #B6C7A1
+     trick: navbar keeps your lavender with dark text;
+     buttons step down through #998AB6 to a readable depth. */
+  [data-theme="t4"] {
+    --bg: #fbfaf7;
+    --ink: #3d3544;
+    --ink-soft: #756c7d;
+    --main: #B39FB5;
+    --main-deep: #84749f;
+    --accent: #B6C7A1;
+    --accent-deep: #6f8456;
+    --nav-bg: #B39FB5;
+    --nav-ink: #322b38;
+    --btn-bg: #84749f;
+    --btn-ink: #fbfaff;
+    --btn2-bg: #B6C7A1;
+    --btn2-ink: #2f3a20;
+    --band-bg: #84749f;
+    --band-ink: #f3effa;
+    --band-accent: #cfdabf;
+    --chip-bg: #e8eedd;
+    --chip-ink: #57693f;
+    --card-bg: #ffffff;
+    --heading: #6c5a78;
+    --logo-yarn: #cabccf;
+    --logo-swatch: #dde5cd;
+    --logo-plaid: #98ab7d;
+    --logo-line: #574a66;
+    --logo-cap: #84749f;
+  }
+
+  /* 5 · Spruce & Apricot — my proposal in the same mood:
+     a deep muted spruce that holds white text natively,
+     a warm apricot accent, everything on soft cream. */
+  [data-theme="t5"] {
+    --bg: #faf6ee;
+    --ink: #2e3b38;
+    --ink-soft: #5f6f6a;
+    --main: #3f5c55;
+    --main-deep: #2f4640;
+    --accent: #e3a06b;
+    --accent-deep: #b06f3a;
+    --nav-bg: #3f5c55;
+    --nav-ink: #f5efe2;
+    --btn-bg: #3f5c55;
+    --btn-ink: #f5efe2;
+    --btn2-bg: #e3a06b;
+    --btn2-ink: #4a2c12;
+    --band-bg: #2f4640;
+    --band-ink: #f0e9d9;
+    --band-accent: #e3a06b;
+    --chip-bg: #f4e3cf;
+    --chip-ink: #8a5527;
+    --card-bg: #ffffff;
+    --heading: #34504a;
+    --logo-yarn: #f0c9a4;
+    --logo-swatch: #e8e3d2;
+    --logo-plaid: #3f5c55;
+    --logo-line: #2f4640;
+    --logo-cap: #e3a06b;
+  }
+
+  /* 6 · Matcha & Apricot — version 5 reskinned: the petrol spruce
+     becomes a darkened matcha/olive (mockup 1's #9fa264, deepened
+     to ~#5f6a33 so white text stays crisp); apricot accent & cream kept. */
+  [data-theme="t6"] {
+    --bg: #faf6ee;
+    --ink: #353a28;
+    --ink-soft: #666c52;
+    --main: #5f6a33;
+    --main-deep: #474f23;
+    --accent: #e3a06b;
+    --accent-deep: #b06f3a;
+    --nav-bg: #5f6a33;
+    --nav-ink: #f5efe2;
+    --btn-bg: #5f6a33;
+    --btn-ink: #f5efe2;
+    --btn2-bg: #e3a06b;
+    --btn2-ink: #4a2c12;
+    --band-bg: #474f23;
+    --band-ink: #f0ecd9;
+    --band-accent: #e3a06b;
+    --chip-bg: #f4e3cf;
+    --chip-ink: #8a5527;
+    --card-bg: #ffffff;
+    --heading: #515a2c;
+    --logo-yarn: #f0c9a4;
+    --logo-swatch: #e8e6d2;
+    --logo-plaid: #5f6a33;
+    --logo-line: #474f23;
+    --logo-cap: #e3a06b;
+  }
+
+  /* 7 · Lavender & Sage (deep-tone variant) — theme 4 with the SAME light
+     lavender navbar, but the primary/button/band color is now a darker shade
+     of that same lavender (#7a5a7d) instead of theme 4's bluer #84749f.
+     Sage accent kept exactly as in theme 4. */
+  [data-theme="t7"] {
+    --bg: #fbfaf7;
+    --ink: #3d3544;
+    --ink-soft: #756c7d;
+    --main: #B39FB5;
+    --main-deep: #7a5a7d;
+    --accent: #B6C7A1;
+    --accent-deep: #6f8456;
+    --nav-bg: #B39FB5;
+    --nav-ink: #322b38;
+    --btn-bg: #7a5a7d;
+    --btn-ink: #fbf7fb;
+    --btn2-bg: #B6C7A1;
+    --btn2-ink: #2f3a20;
+    --band-bg: #6f5072;
+    --band-ink: #f4eef5;
+    --band-accent: #cfdabf;
+    --chip-bg: #e8eedd;
+    --chip-ink: #57693f;
+    --card-bg: #ffffff;
+    --heading: #6e4f71;
+    --logo-yarn: #cabccf;
+    --logo-swatch: #dde5cd;
+    --logo-plaid: #98ab7d;
+    --logo-line: #5a4060;
+    --logo-cap: #7a5a7d;
+  }
+
+  /* ============================================================
+     BASE
+     ============================================================ */
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: "Karla", sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.55;
+    transition: background .35s ease, color .35s ease;
+    padding-bottom: 96px; /* room for the switcher */
+  }
+  h1, h2, h3, .display { font-family: "Fraunces", serif; }
+  img { max-width: 100%; }
+  a { color: inherit; }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 0 28px; }
+
+  ::selection { background: var(--accent); color: var(--btn2-ink); }
+
+  /* gentle page-load reveal */
+  @keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+  .rise { animation: rise .6s ease both; }
+  .d1 { animation-delay: .08s; } .d2 { animation-delay: .16s; }
+  .d3 { animation-delay: .24s; } .d4 { animation-delay: .32s; }
+
+  /* ============================================================
+     NAVBAR
+     ============================================================ */
+  nav {
+    background: var(--nav-bg);
+    color: var(--nav-ink);
+    transition: background .35s ease, color .35s ease;
+  }
+  .nav-inner {
+    display: flex; align-items: center; gap: 36px;
+    padding: 14px 28px; max-width: 1120px; margin: 0 auto;
+  }
+  .brand { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+  .brand svg { width: 44px; height: 42px; display: block; }
+  .brand-name {
+    font-family: "Fraunces", serif; font-weight: 600;
+    font-size: 1.3rem; letter-spacing: .01em;
+  }
+  .brand-name small {
+    display: block; font-family: "Karla", sans-serif; font-weight: 600;
+    font-size: .62rem; letter-spacing: .32em; text-transform: uppercase; opacity: .75;
+  }
+  .nav-links { display: flex; gap: 26px; margin-left: auto; list-style: none; padding: 0; }
+  .nav-links a {
+    text-decoration: none; font-weight: 600; font-size: .95rem;
+    padding-bottom: 2px; border-bottom: 2px solid transparent;
+    transition: border-color .2s;
+  }
+  .nav-links a:hover { border-bottom-color: currentColor; }
+  .nav-cart {
+    background: var(--btn2-bg); color: var(--btn2-ink);
+    border: none; font: 600 .9rem "Karla", sans-serif;
+    padding: 9px 18px; border-radius: 999px; cursor: pointer;
+    transition: transform .15s ease, background .35s ease;
+  }
+  .nav-cart:hover { transform: translateY(-1px); }
+
+  /* ============================================================
+     HERO
+     ============================================================ */
+  .hero {
+    display: grid; grid-template-columns: 1.05fr .95fr; gap: 56px;
+    align-items: center; padding: 72px 0 64px;
+  }
+  .eyebrow {
+    display: inline-flex; align-items: center; gap: 10px;
+    font-size: .75rem; font-weight: 700; letter-spacing: .28em;
+    text-transform: uppercase; color: var(--chip-ink);
+    background: var(--chip-bg); padding: 7px 16px; border-radius: 999px;
+    transition: background .35s ease, color .35s ease;
+  }
+  .hero h1 {
+    font-size: clamp(2.4rem, 5vw, 3.6rem); font-weight: 600;
+    line-height: 1.08; margin: 22px 0 18px; color: var(--heading);
+    letter-spacing: -.01em; transition: color .35s ease;
+  }
+  .hero h1 em { font-style: italic; font-weight: 500; }
+  .hero p.lede { font-size: 1.12rem; color: var(--ink-soft); max-width: 46ch; }
+  .cta-row { display: flex; gap: 14px; margin-top: 32px; flex-wrap: wrap; }
+  .btn {
+    display: inline-block; text-decoration: none; cursor: pointer; border: none;
+    font: 700 1rem "Karla", sans-serif; padding: 14px 28px; border-radius: 999px;
+    transition: transform .15s ease, box-shadow .15s ease, background .35s ease, color .35s ease;
+  }
+  .btn:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgb(0 0 0 / .12); }
+  .btn-primary { background: var(--btn-bg); color: var(--btn-ink); }
+  .btn-accent  { background: var(--btn2-bg); color: var(--btn2-ink); }
+
+  /* hero collage — fabric-pattern shapes drawn in CSS from the palette */
+  .collage { position: relative; height: 420px; }
+  .collage > div { position: absolute; transition: background .35s ease; }
+  .swatch-big {
+    width: 64%; height: 70%; right: 0; top: 4%;
+    border-radius: 26px;
+    background:
+      repeating-linear-gradient(0deg,  transparent 0 22px, color-mix(in srgb, var(--main) 38%, transparent) 22px 30px),
+      repeating-linear-gradient(90deg, transparent 0 22px, color-mix(in srgb, var(--main) 38%, transparent) 22px 30px),
+      color-mix(in srgb, var(--main) 14%, white);
+    box-shadow: 0 18px 40px rgb(0 0 0 / .10);
+  }
+  .swatch-dots {
+    width: 44%; height: 46%; left: 4%; bottom: 0;
+    border-radius: 50% 50% 50% 16px;
+    background:
+      radial-gradient(circle at 8px 8px, color-mix(in srgb, var(--accent-deep) 70%, transparent) 4px, transparent 5px) 0 0 / 30px 30px,
+      color-mix(in srgb, var(--accent) 36%, white);
+    box-shadow: 0 14px 30px rgb(0 0 0 / .12);
+  }
+  .swatch-stripe {
+    width: 30%; height: 26%; left: 26%; top: 6%;
+    border-radius: 18px; transform: rotate(-7deg);
+    background: repeating-linear-gradient(135deg,
+      color-mix(in srgb, var(--accent) 55%, white) 0 14px,
+      color-mix(in srgb, var(--main) 45%, white) 14px 28px);
+    border: 2px dashed color-mix(in srgb, var(--ink) 35%, transparent);
+  }
+  .collage .tag-price {
+    left: 12%; top: 44%;
+    background: var(--card-bg); border-radius: 14px; padding: 12px 18px;
+    box-shadow: 0 10px 26px rgb(0 0 0 / .14);
+    font-weight: 700; font-size: .92rem; transform: rotate(-3deg);
+  }
+  .collage .tag-price span { display: block; font-weight: 400; font-size: .78rem; color: var(--ink-soft); }
+
+  /* ============================================================
+     VALUE STRIP
+     ============================================================ */
+  .strip {
+    display: flex; gap: 12px; justify-content: space-between; flex-wrap: wrap;
+    border-top: 1px solid color-mix(in srgb, var(--ink) 14%, transparent);
+    border-bottom: 1px solid color-mix(in srgb, var(--ink) 14%, transparent);
+    padding: 18px 0; font-weight: 600; font-size: .95rem; color: var(--ink-soft);
+  }
+  .strip b { color: var(--heading); transition: color .35s ease; }
+
+  /* ============================================================
+     PRODUCT GRID
+     ============================================================ */
+  .section-head { display: flex; align-items: baseline; gap: 18px; margin: 64px 0 26px; }
+  .section-head h2 { font-size: 1.9rem; font-weight: 600; color: var(--heading); transition: color .35s ease; }
+  .section-head a { margin-left: auto; font-weight: 700; font-size: .92rem; color: var(--accent-deep); text-decoration: none; }
+  .section-head a:hover { text-decoration: underline; }
+
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 22px; }
+  .card {
+    background: var(--card-bg); border-radius: 18px; overflow: hidden;
+    box-shadow: 0 2px 10px rgb(0 0 0 / .06);
+    transition: transform .18s ease, box-shadow .18s ease, background .35s ease;
+  }
+  .card:hover { transform: translateY(-4px); box-shadow: 0 14px 30px rgb(0 0 0 / .12); }
+  .ph { height: 180px; transition: background .35s ease; }
+  .ph-gingham {
+    background:
+      repeating-linear-gradient(0deg,  transparent 0 16px, color-mix(in srgb, var(--main) 42%, transparent) 16px 24px),
+      repeating-linear-gradient(90deg, transparent 0 16px, color-mix(in srgb, var(--main) 42%, transparent) 16px 24px),
+      color-mix(in srgb, var(--main) 12%, white);
+  }
+  .ph-dots {
+    background:
+      radial-gradient(circle at 7px 7px, color-mix(in srgb, var(--accent-deep) 62%, transparent) 3.4px, transparent 4.4px) 0 0 / 26px 26px,
+      color-mix(in srgb, var(--accent) 30%, white);
+  }
+  .ph-stripes {
+    background: repeating-linear-gradient(90deg,
+      color-mix(in srgb, var(--main) 38%, white) 0 18px,
+      color-mix(in srgb, var(--accent) 30%, white) 18px 36px);
+  }
+  .ph-zigzag {
+    background:
+      linear-gradient(135deg, color-mix(in srgb, var(--main) 40%, white) 25%, transparent 25%) -14px 0 / 28px 28px,
+      linear-gradient(225deg, color-mix(in srgb, var(--main) 40%, white) 25%, transparent 25%) -14px 0 / 28px 28px,
+      linear-gradient(315deg, color-mix(in srgb, var(--main) 40%, white) 25%, transparent 25%) 0 0 / 28px 28px,
+      linear-gradient(45deg,  color-mix(in srgb, var(--main) 40%, white) 25%, transparent 25%) 0 0 / 28px 28px,
+      color-mix(in srgb, var(--accent) 18%, white);
+  }
+  .card-body { padding: 16px 18px 18px; }
+  .card-body h3 { font-size: 1.08rem; font-weight: 600; }
+  .card-meta { display: flex; align-items: center; margin-top: 8px; }
+  .price { font-weight: 700; color: var(--heading); transition: color .35s ease; }
+  .tag {
+    margin-left: auto; font-size: .72rem; font-weight: 700; letter-spacing: .06em;
+    text-transform: uppercase; background: var(--chip-bg); color: var(--chip-ink);
+    padding: 4px 10px; border-radius: 999px; transition: background .35s ease, color .35s ease;
+  }
+
+  /* ============================================================
+     CONFIGURATOR BAND
+     ============================================================ */
+  .band {
+    margin: 80px 0 0; border-radius: 28px; overflow: hidden;
+    background: var(--band-bg); color: var(--band-ink);
+    display: grid; grid-template-columns: 1.1fr .9fr; align-items: center;
+    transition: background .35s ease, color .35s ease;
+  }
+  .band-copy { padding: 56px; }
+  .band-copy .eyebrow { background: rgb(255 255 255 / .14); color: var(--band-accent); }
+  .band-copy h2 { font-size: 2.1rem; font-weight: 600; margin: 18px 0 12px; line-height: 1.15; }
+  .band-copy p { opacity: .85; max-width: 44ch; }
+  .band-copy .btn { margin-top: 28px; }
+  .band-visual { padding: 40px 48px; display: flex; justify-content: center; }
+  .band-visual svg { width: 100%; max-width: 330px; }
+
+  /* ============================================================
+     LOGO LAB
+     ============================================================ */
+  .logolab {
+    margin-top: 80px; padding: 34px 0 8px;
+    border-top: 1px solid color-mix(in srgb, var(--ink) 14%, transparent);
+  }
+  .logolab h2 { font-size: 1.2rem; color: var(--ink-soft); font-weight: 500; margin-bottom: 22px; }
+  .lab-row { display: flex; gap: 28px; flex-wrap: wrap; }
+  .lab-tile {
+    background: var(--card-bg); border-radius: 18px; padding: 26px 32px;
+    display: flex; align-items: center; gap: 18px;
+    box-shadow: 0 2px 10px rgb(0 0 0 / .06); transition: background .35s ease;
+  }
+  .lab-tile.on-main { background: var(--band-bg); color: var(--band-ink); }
+  .lab-tile svg { display: block; }
+  .lab-label { font-size: .8rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-soft); }
+  .lab-tile.on-main .lab-label { color: var(--band-ink); opacity: .7; }
+  .favicon-chip {
+    width: 32px; height: 32px; border-radius: 7px;
+    background: var(--chip-bg); display: grid; place-items: center;
+  }
+
+  /* ============================================================
+     FOOTER
+     ============================================================ */
+  footer {
+    margin-top: 60px; padding: 26px 0 10px; font-size: .9rem; color: var(--ink-soft);
+    display: flex; gap: 24px; flex-wrap: wrap;
+  }
+  footer a { text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+
+  /* ============================================================
+     PALETTE SWITCHER
+     ============================================================ */
+  .switcher {
+    position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%);
+    background: #1f1d1a; color: #f5f2ec; border-radius: 18px;
+    padding: 12px 18px; display: flex; align-items: center; gap: 14px;
+    box-shadow: 0 16px 40px rgb(0 0 0 / .35); z-index: 50;
+    max-width: min(94vw, 860px);
+  }
+  .sw-btns { display: flex; gap: 8px; }
+  .sw-btn {
+    border: 2px solid transparent; background: #34312c; color: #f5f2ec;
+    border-radius: 12px; padding: 7px 10px; cursor: pointer;
+    display: flex; align-items: center; gap: 7px; font: 700 .82rem "Karla", sans-serif;
+    transition: border-color .15s ease, transform .15s ease;
+  }
+  .sw-btn:hover { transform: translateY(-1px); }
+  .sw-btn.active { border-color: #f5f2ec; }
+  .dot { width: 13px; height: 13px; border-radius: 50%; box-shadow: inset 0 0 0 1px rgb(255 255 255 / .25); }
+  .sw-note { font-size: .8rem; line-height: 1.35; opacity: .85; max-width: 330px; }
+  .sw-note b { display: block; font-size: .84rem; opacity: 1; }
+  .sw-key { display: none; }
+  @media (min-width: 700px) {
+    .sw-key { display: inline; opacity: .5; font-size: .72rem; margin-left: 2px; }
+  }
+
+  /* ============================================================
+     RESPONSIVE
+     ============================================================ */
+  @media (max-width: 900px) {
+    .hero { grid-template-columns: 1fr; padding-top: 48px; }
+    .collage { height: 340px; }
+    .grid { grid-template-columns: repeat(2, 1fr); }
+    .band { grid-template-columns: 1fr; }
+    .nav-links { display: none; }
+    .switcher { flex-direction: column; gap: 8px; }
+    .sw-note { max-width: none; text-align: center; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ====== LOGO as a reusable symbol: drawn from your sketch ======
+     yarn ball + knitting needles (front-left), zigzag-cut plaid
+     swatch (back-right), threaded sewing needle (below).      -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <!-- pinking-shear zigzag square, slightly tilted -->
+    <path id="swatch-shape" d="M34,24
+      l5,-6 l5,6 l5,-6 l5,6 l5,-6 l5,6 l5,-6 l5,6 l5,-6 l5,6 l5,-6 l5,6
+      l6,5 l-6,5 l6,5 l-6,5 l6,5 l-6,5 l6,5 l-6,5 l6,5 l-6,5 l6,5 l-6,5
+      l-5,6 l-5,-6 l-5,6 l-5,-6 l-5,6 l-5,-6 l-5,6 l-5,-6 l-5,6 l-5,-6 l-5,6 l-5,-6
+      l-6,-5 l6,-5 l-6,-5 l6,-5 l-6,-5 l6,-5 l-6,-5 l6,-5 l-6,-5 l6,-5 l-6,-5 l6,-5 Z"/>
+
+    <clipPath id="swatch-clip"><use href="#swatch-shape" transform="rotate(5 64 54)"/></clipPath>
+    <clipPath id="yarn-clip"><circle cx="47" cy="82" r="29"/></clipPath>
+
+    <g id="nanalu-mark">
+      <!-- plaid swatch -->
+      <g transform="rotate(5 64 54)">
+        <use href="#swatch-shape" fill="var(--logo-swatch)"/>
+      </g>
+      <g clip-path="url(#swatch-clip)" opacity=".85">
+        <rect x="48" y="6" width="9" height="100" fill="var(--logo-plaid)" opacity=".5"/>
+        <rect x="74" y="6" width="9" height="100" fill="var(--logo-plaid)" opacity=".5"/>
+        <rect x="20" y="40" width="110" height="9" fill="var(--logo-plaid)" opacity=".5"/>
+        <rect x="20" y="64" width="110" height="9" fill="var(--logo-plaid)" opacity=".5"/>
+        <rect x="63" y="6" width="2.4" height="100" fill="var(--logo-line)" opacity=".55"/>
+        <rect x="20" y="54.5" width="110" height="2.4" fill="var(--logo-line)" opacity=".55"/>
+      </g>
+      <g transform="rotate(5 64 54)">
+        <use href="#swatch-shape" fill="none" stroke="var(--logo-line)" stroke-width="2" stroke-linejoin="round"/>
+      </g>
+
+      <!-- sewing needle + thread, lower right -->
+      <g stroke="var(--logo-line)" fill="none" stroke-linecap="round">
+        <path d="M86,106 L126,90" stroke-width="3.4"/>
+        <circle cx="121.5" cy="91.8" r="2.6" stroke-width="1.8" fill="var(--bg, #fff)"/>
+        <path d="M124,94 C133,101 127,112 110,114" stroke-width="1.7" opacity=".9"/>
+      </g>
+
+      <!-- yarn ball -->
+      <circle cx="47" cy="82" r="29" fill="var(--logo-yarn)"/>
+      <g clip-path="url(#yarn-clip)" stroke="var(--logo-line)" stroke-width="2.2" fill="none" opacity=".75">
+        <path d="M16,72 Q47,90 78,70"/>
+        <path d="M18,88 Q49,104 77,86"/>
+        <path d="M26,60 Q50,74 74,98"/>
+        <path d="M34,108 Q38,76 58,55"/>
+        <path d="M64,108 Q70,84 76,76"/>
+      </g>
+      <circle cx="47" cy="82" r="29" fill="none" stroke="var(--logo-line)" stroke-width="2.2"/>
+
+      <!-- knitting needles -->
+      <g stroke="var(--logo-line)" stroke-width="2.6" stroke-linecap="round">
+        <path d="M39,62 L23,30"/>
+        <path d="M51,59 L45,22"/>
+      </g>
+      <circle cx="22" cy="27" r="3.6" fill="var(--logo-cap)" stroke="var(--logo-line)" stroke-width="1.6"/>
+      <circle cx="44.5" cy="19" r="3.6" fill="var(--logo-cap)" stroke="var(--logo-line)" stroke-width="1.6"/>
+    </g>
+
+    <!-- favicon-simplified mark: yarn ball + needles only -->
+    <g id="nanalu-favicon">
+      <circle cx="50" cy="62" r="34" fill="var(--logo-yarn)"/>
+      <g stroke="var(--logo-line)" stroke-width="3" fill="none" opacity=".75">
+        <path d="M14,52 Q50,72 86,50" clip-path="circle(34px at 50px 62px)"/>
+        <path d="M16,72 Q52,90 85,70" clip-path="circle(34px at 50px 62px)"/>
+        <path d="M34,92 Q40,58 62,32" clip-path="circle(34px at 50px 62px)"/>
+      </g>
+      <circle cx="50" cy="62" r="34" fill="none" stroke="var(--logo-line)" stroke-width="3"/>
+      <g stroke="var(--logo-line)" stroke-width="3.4" stroke-linecap="round">
+        <path d="M40,38 L22,8"/>
+        <path d="M56,34 L52,4"/>
+      </g>
+      <circle cx="21" cy="6.5" r="4.4" fill="var(--logo-cap)" stroke="var(--logo-line)" stroke-width="2"/>
+      <circle cx="51.6" cy="3.6" r="4.4" fill="var(--logo-cap)" stroke="var(--logo-line)" stroke-width="2"/>
+    </g>
+  </defs>
+</svg>
+
+<!-- ====== NAVBAR ====== -->
+<nav>
+  <div class="nav-inner">
+    <a class="brand" href="#">
+      <svg viewBox="0 0 134 122"><use href="#nanalu-mark"/></svg>
+      <span class="brand-name">Nanalu<small>Boutique</small></span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="#">Shop</a></li>
+      <li><a href="#">Design your own</a></li>
+      <li><a href="#">Our story</a></li>
+    </ul>
+    <button class="nav-cart">Cart · 2</button>
+  </div>
+</nav>
+
+<div class="wrap">
+
+  <!-- ====== HERO ====== -->
+  <section class="hero">
+    <div>
+      <span class="eyebrow rise">Handmade by two sisters</span>
+      <h1 class="rise d1">Made by hand.<br /><em>Designed by you.</em></h1>
+      <p class="lede rise d2">One-of-a-kind sewn and knit pieces, ready to ship — or pick your
+        own fabrics and we'll make yours from scratch. Every fabric shown at its true scale.</p>
+      <div class="cta-row rise d3">
+        <a class="btn btn-primary" href="#">Shop ready-made</a>
+        <a class="btn btn-accent" href="#">Design your own</a>
+      </div>
+    </div>
+    <div class="collage rise d2" aria-hidden="true">
+      <div class="swatch-big"></div>
+      <div class="swatch-stripe"></div>
+      <div class="swatch-dots"></div>
+      <div class="tag-price">Scrunchie set — €18 <span>one of a kind</span></div>
+    </div>
+  </section>
+
+  <!-- ====== VALUE STRIP ====== -->
+  <div class="strip rise d3">
+    <span><b>✂︎ Sewn &amp; knit by hand</b> — no two alike</span>
+    <span><b>⊞ True-scale fabrics</b> — what you see is the real print size</span>
+    <span><b>♡ Made-to-order</b> — your fabric, your piece</span>
+  </div>
+
+  <!-- ====== PRODUCTS ====== -->
+  <section>
+    <div class="section-head">
+      <h2>Fresh from the sewing table</h2>
+      <a href="#">Browse everything →</a>
+    </div>
+    <div class="grid">
+      <article class="card">
+        <div class="ph ph-gingham"></div>
+        <div class="card-body">
+          <h3>Picnic tote bag</h3>
+          <div class="card-meta"><span class="price">€42</span><span class="tag">One of a kind</span></div>
+        </div>
+      </article>
+      <article class="card">
+        <div class="ph ph-dots"></div>
+        <div class="card-body">
+          <h3>Dotted zip pouch</h3>
+          <div class="card-meta"><span class="price">€24</span><span class="tag">Customizable</span></div>
+        </div>
+      </article>
+      <article class="card">
+        <div class="ph ph-stripes"></div>
+        <div class="card-body">
+          <h3>Striped knit beanie</h3>
+          <div class="card-meta"><span class="price">€35</span><span class="tag">One of a kind</span></div>
+        </div>
+      </article>
+      <article class="card">
+        <div class="ph ph-zigzag"></div>
+        <div class="card-body">
+          <h3>Zigzag cushion cover</h3>
+          <div class="card-meta"><span class="price">€38</span><span class="tag">Customizable</span></div>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <!-- ====== CONFIGURATOR TEASER ====== -->
+  <section class="band">
+    <div class="band-copy">
+      <span class="eyebrow">The configurator</span>
+      <h2>Paint-bucket your favourite fabric onto any piece.</h2>
+      <p>Pick a product, tap a fabric, fill a section — and watch your piece come together
+        with every print shown at its real size. Fixed price, endless combinations.</p>
+      <a class="btn btn-accent" href="#">Try the configurator</a>
+    </div>
+    <div class="band-visual" aria-hidden="true">
+      <svg viewBox="0 0 134 122"><use href="#nanalu-mark"/></svg>
+    </div>
+  </section>
+
+  <!-- ====== LOGO LAB ====== -->
+  <section class="logolab">
+    <h2>Logo lab — your sketch, vectorized &amp; recolored per palette</h2>
+    <div class="lab-row">
+      <div class="lab-tile">
+        <svg viewBox="0 0 134 122" width="84" height="78"><use href="#nanalu-mark"/></svg>
+        <div><div class="lab-label">Full mark</div>on light</div>
+      </div>
+      <div class="lab-tile on-main">
+        <svg viewBox="0 0 134 122" width="84" height="78"><use href="#nanalu-mark"/></svg>
+        <div><div class="lab-label">Full mark</div>on main color</div>
+      </div>
+      <div class="lab-tile">
+        <svg viewBox="-6 -4 112 108" width="64" height="64"><use href="#nanalu-favicon"/></svg>
+        <div class="favicon-chip">
+          <svg viewBox="-6 -4 112 108" width="22" height="22"><use href="#nanalu-favicon"/></svg>
+        </div>
+        <div><div class="lab-label">Favicon</div>simplified: yarn + needles</div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <span>© 2026 Nanalu Boutique</span>
+    <a href="#">Shipping</a><a href="#">Returns</a><a href="#">Privacy</a><a href="#">Impressum</a>
+  </footer>
+</div>
+
+<!-- ====== PALETTE SWITCHER ====== -->
+<div class="switcher" role="toolbar" aria-label="Palette switcher">
+  <div class="sw-btns" id="swBtns"></div>
+  <div class="sw-note" id="swNote"></div>
+</div>
+
+<script>
+  const THEMES = [
+    { id: "t1", name: "Stone & Olive", dots: ["#aaa7a1", "#9fa264"],
+      note: "Your picks, faithful. Navbar keeps the light stone with dark text; primary buttons deepen one step (#706c65) so white text stays readable." },
+    { id: "t2", name: "Plum & Cream", dots: ["#533B4D", "#FAEDCA"],
+      note: "Deep plum holds cream text natively — no tricks needed. Cream accents live on plum surfaces; dusty rose covers standalone accents on white." },
+    { id: "t3", name: "Camel & Pink", dots: ["#deb28e", "#dfb9b8"],
+      note: "Both picks are pastels, so the swatch's burgundy (#7f2a2e) is promoted to text & anchor duty. Navbar camel with burgundy text." },
+    { id: "t4", name: "Lavender & Sage", dots: ["#B39FB5", "#B6C7A1"],
+      note: "Navbar keeps your lavender with dark text; buttons step down through the swatch's deeper purple for contrast. Sage takes accent duty." },
+    { id: "t5", name: "Spruce & Apricot", dots: ["#3f5c55", "#e3a06b"],
+      note: "My proposal in the same mood: a deep muted spruce that carries white text out of the box, warm apricot accent, soft cream page." },
+    { id: "t6", name: "Matcha & Apricot", dots: ["#5f6a33", "#e3a06b"],
+      note: "Version 5 reskinned: the petrol spruce becomes a darkened matcha/olive (mockup 1's accent, deepened to #5f6a33 so white text stays crisp). Apricot accent + cream kept." },
+    { id: "t7", name: "Lavender & Sage (deep)", dots: ["#B39FB5", "#7a5a7d", "#B6C7A1"],
+      note: "Theme 4 with the same lavender navbar, but the primary/button/band color is now a darker shade of that lavender (#7a5a7d) instead of the bluer #84749f. Sage accent unchanged." },
+  ];
+
+  const btnsEl = document.getElementById("swBtns");
+  const noteEl = document.getElementById("swNote");
+
+  THEMES.forEach((t, i) => {
+    const b = document.createElement("button");
+    b.className = "sw-btn";
+    b.innerHTML = t.dots.map(c => `<span class="dot" style="background:${c}"></span>`).join("")
+      + `${i + 1}<span class="sw-key">[${i + 1}]</span>`;
+    b.title = t.name;
+    b.addEventListener("click", () => setTheme(i));
+    btnsEl.appendChild(b);
+  });
+
+  function setTheme(i) {
+    const t = THEMES[i];
+    document.documentElement.dataset.theme = t.id;
+    noteEl.innerHTML = `<b>${i + 1} · ${t.name}</b>`;
+    [...btnsEl.children].forEach((b, j) => b.classList.toggle("active", j === i));
+  }
+
+  document.addEventListener("keydown", (e) => {
+    const n = Number(e.key);
+    if (n >= 1 && n <= THEMES.length && !e.metaKey && !e.ctrlKey) setTheme(n - 1);
+  });
+
+  const fromHash = Number(location.hash.slice(1));
+  setTheme(fromHash >= 1 && fromHash <= THEMES.length ? fromHash - 1 : 0);
+</script>
+</body>
+</html>

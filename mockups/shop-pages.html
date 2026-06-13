@@ -1,0 +1,1185 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Nanalu Boutique</title>
+<link rel="icon" type="image/svg+xml" id="favicon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'/%3E" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Karla:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  /* ============================================================
+     THEME 7 — Lavender & Sage (deep-tone) · locked palette
+     ============================================================ */
+  :root {
+    --bg: #fbfaf7;
+    --ink: #3d3544;
+    --ink-soft: #756c7d;
+    --line: #e7e2ea;
+
+    --lav: #B39FB5;          /* navbar / light lavender */
+    --main: #7a5a7d;         /* deepened lavender — primary */
+    --main-deep: #6f5072;    /* darker band */
+    --main-tint: #f1ecf2;    /* very light lavender wash */
+
+    --sage: #B6C7A1;         /* accent */
+    --sage-deep: #6f8456;
+    --sage-tint: #e8eedd;
+    --chip-ink: #57693f;     /* darker sage — chip/eyebrow text */
+
+    --nav-ink: #322b38;
+    --card-bg: #ffffff;
+    --heading: #6e4f71;
+
+    --logo-yarn: #cabccf;
+    --logo-swatch: #dde5cd;
+    --logo-plaid: #98ab7d;
+    --logo-line: #5a4060;
+    --logo-cap: #7a5a7d;
+
+    --shadow-sm: 0 2px 10px rgb(74 58 80 / .07);
+    --shadow-md: 0 14px 32px rgb(74 58 80 / .14);
+  }
+
+  /* ============================================================
+     BASE
+     ============================================================ */
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: "Karla", sans-serif;
+    background:
+      radial-gradient(1200px 600px at 90% -10%, var(--main-tint), transparent 60%),
+      radial-gradient(900px 500px at -10% 0%, var(--sage-tint), transparent 55%),
+      var(--bg);
+    color: var(--ink);
+    line-height: 1.55;
+    padding-bottom: 96px;
+    min-height: 100vh;
+  }
+  h1, h2, h3, h4, .display { font-family: "Fraunces", serif; }
+  h1, h2, h3, .display { color: var(--ink); }
+  h4 { color: var(--heading); }
+  a { color: inherit; text-decoration: none; }
+  button { font-family: inherit; cursor: pointer; }
+  img { max-width: 100%; }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 0 30px; }
+  ::selection { background: var(--sage); color: #2f3a20; }
+
+  @keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+  .page.active .rise { animation: rise .55s ease both; }
+  .d1 { animation-delay: .06s; } .d2 { animation-delay: .12s; }
+  .d3 { animation-delay: .18s; } .d4 { animation-delay: .24s; }
+
+  /* ============================================================
+     BUTTONS / CHIPS
+     ============================================================ */
+  .btn {
+    display: inline-flex; align-items: center; gap: 9px; border: none;
+    font: 700 1rem "Karla", sans-serif; padding: 13px 26px; border-radius: 999px;
+    transition: transform .15s ease, box-shadow .15s ease, background .2s ease;
+  }
+  .btn:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+  .btn-primary { background: var(--main); color: #fbf7fb; }
+  .btn-accent  { background: var(--sage); color: #2f3a20; }
+  .btn-ghost   { background: transparent; color: var(--main); box-shadow: inset 0 0 0 1.5px var(--main); }
+  .btn-ghost:hover { background: var(--main-tint); box-shadow: inset 0 0 0 1.5px var(--main); }
+  .btn-sm { padding: 9px 16px; font-size: .9rem; }
+
+  .eyebrow {
+    display: inline-flex; align-items: center; gap: 9px;
+    font-size: .72rem; font-weight: 700; letter-spacing: .26em; text-transform: uppercase;
+    color: var(--chip-ink); background: var(--sage-tint); padding: 6px 14px; border-radius: 999px;
+  }
+  .tag {
+    font-size: .68rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+    padding: 4px 10px; border-radius: 999px;
+  }
+  .tag-custom { background: var(--main-tint); color: var(--main); }
+  .tag-ooak   { background: var(--sage-tint); color: var(--chip-ink); }
+
+  /* ============================================================
+     NAVBAR (shared)
+     ============================================================ */
+  nav {
+    background: var(--lav); color: var(--nav-ink);
+    position: sticky; top: 0; z-index: 30;
+    box-shadow: 0 1px 0 rgb(74 58 80 / .08);
+  }
+  .nav-inner { display: flex; align-items: center; gap: 34px; padding: 13px 30px; max-width: 1180px; margin: 0 auto; }
+  .brand { display: flex; align-items: center; gap: 11px; }
+  .brand svg { width: 42px; height: 40px; display: block; }
+  .brand-name { font-family: "Fraunces", serif; font-weight: 600; font-size: 1.26rem; color: var(--nav-ink); }
+  .brand-name small {
+    display: block; font-family: "Karla", sans-serif; font-weight: 700;
+    font-size: .58rem; letter-spacing: .38em; text-transform: uppercase; opacity: .72;
+  }
+  .nav-links { display: flex; gap: 24px; margin-left: auto; list-style: none; }
+  .nav-links a { font-weight: 600; font-size: .95rem; padding-bottom: 3px; border-bottom: 2px solid transparent; transition: border-color .2s; }
+  .nav-links a:hover, .nav-links a.on { border-bottom-color: var(--main); }
+  .nav-actions { display: flex; align-items: center; gap: 14px; }
+  .icon-btn {
+    background: rgb(255 255 255 / .35); border: none; width: 38px; height: 38px; border-radius: 50%;
+    display: grid; place-items: center; color: var(--nav-ink); transition: background .2s, transform .15s;
+  }
+  .icon-btn:hover { background: rgb(255 255 255 / .6); transform: translateY(-1px); }
+  .nav-cart {
+    background: var(--main); color: #fbf7fb; border: none; font: 700 .9rem "Karla", sans-serif;
+    padding: 9px 16px 9px 14px; border-radius: 999px; display: flex; align-items: center; gap: 8px;
+    transition: transform .15s; position: relative;
+  }
+  .nav-cart:hover { transform: translateY(-1px); }
+  .nav-cart .count { background: var(--sage); color: #2f3a20; border-radius: 999px; font-size: .76rem; padding: 1px 7px; }
+
+  /* ============================================================
+     PAGE PLUMBING
+     ============================================================ */
+  .page { display: none; }
+  .page.active { display: block; }
+  .page-head { padding: 40px 0 8px; }
+  .breadcrumb { font-size: .85rem; color: var(--ink-soft); margin-bottom: 14px; }
+  .breadcrumb a:hover { color: var(--main); }
+  .breadcrumb span { opacity: .5; margin: 0 7px; }
+  .page-head h1 { font-size: clamp(2rem, 4vw, 2.8rem); font-weight: 600; line-height: 1.06; }
+  .page-head p { color: var(--ink-soft); margin-top: 8px; max-width: 52ch; }
+
+  /* fabric pattern fills (shared) */
+  .ph { position: relative; transition: background .3s; }
+  .ph-gingham {
+    background:
+      repeating-linear-gradient(0deg,  transparent 0 15px, color-mix(in srgb, var(--sage) 55%, transparent) 15px 23px),
+      repeating-linear-gradient(90deg, transparent 0 15px, color-mix(in srgb, var(--sage) 55%, transparent) 15px 23px),
+      #eef2e6;
+  }
+  .ph-lavgingham {
+    background:
+      repeating-linear-gradient(0deg,  transparent 0 15px, color-mix(in srgb, var(--lav) 60%, transparent) 15px 23px),
+      repeating-linear-gradient(90deg, transparent 0 15px, color-mix(in srgb, var(--lav) 60%, transparent) 15px 23px),
+      #f2eef3;
+  }
+  .ph-dots {
+    background:
+      radial-gradient(circle at 7px 7px, color-mix(in srgb, var(--main) 60%, transparent) 3.4px, transparent 4.4px) 0 0 / 24px 24px,
+      var(--main-tint);
+  }
+  .ph-stripes {
+    background: repeating-linear-gradient(115deg, #e8cdb4 0 14px, #cf9a6d 14px 28px);
+  }
+  .ph-weave {
+    background:
+      repeating-linear-gradient(45deg,  color-mix(in srgb, var(--sage-deep) 40%, transparent) 0 3px, transparent 3px 11px),
+      repeating-linear-gradient(-45deg, color-mix(in srgb, var(--sage-deep) 40%, transparent) 0 3px, transparent 3px 11px),
+      var(--sage-tint);
+  }
+  .ph-chevron {
+    background:
+      linear-gradient(135deg, color-mix(in srgb, var(--main) 45%, white) 25%, transparent 25%) -13px 0 / 26px 26px,
+      linear-gradient(225deg, color-mix(in srgb, var(--main) 45%, white) 25%, transparent 25%) -13px 0 / 26px 26px,
+      linear-gradient(315deg, color-mix(in srgb, var(--main) 45%, white) 25%, transparent 25%) 0 0 / 26px 26px,
+      linear-gradient(45deg,  color-mix(in srgb, var(--main) 45%, white) 25%, transparent 25%) 0 0 / 26px 26px,
+      var(--main-tint);
+  }
+  .ph-solidsage  { background: var(--sage); }
+  .ph-solidlav   { background: var(--lav); }
+  .ph-solidplum  { background: var(--main); }
+
+  /* ============================================================
+     CATALOG PAGE
+     ============================================================ */
+  .catalog-grid { display: grid; grid-template-columns: 232px 1fr; gap: 34px; padding: 22px 0 10px; align-items: start; }
+  .filters {
+    position: sticky; top: 78px; background: var(--card-bg); border-radius: 20px;
+    padding: 22px; box-shadow: var(--shadow-sm); border: 1px solid var(--line);
+  }
+  .filters h4 { font-family: "Karla", sans-serif; font-size: .76rem; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-soft); margin: 18px 0 10px; }
+  .filters h4:first-child { margin-top: 0; }
+  .filter-list { list-style: none; display: flex; flex-direction: column; gap: 2px; }
+  .filter-list li button {
+    width: 100%; text-align: left; background: none; border: none; padding: 7px 11px; border-radius: 9px;
+    font: 600 .92rem "Karla", sans-serif; color: var(--ink); display: flex; align-items: center; justify-content: space-between;
+    transition: background .15s;
+  }
+  .filter-list li button:hover { background: var(--main-tint); }
+  .filter-list li button.on { background: var(--main); color: #fbf7fb; }
+  .filter-list li button .n { font-size: .8rem; opacity: .6; }
+  .check { display: flex; align-items: center; gap: 9px; padding: 6px 0; font-weight: 600; font-size: .92rem; }
+  .check input { accent-color: var(--main); width: 16px; height: 16px; }
+  .swatch-filter { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
+  .swatch-filter span { width: 22px; height: 22px; border-radius: 50%; box-shadow: inset 0 0 0 1.5px rgb(0 0 0 / .08); cursor: pointer; transition: transform .15s; }
+  .swatch-filter span:hover { transform: scale(1.15); }
+
+  .catalog-main .toolbar { display: flex; align-items: center; gap: 14px; margin-bottom: 18px; }
+  .toolbar .count { color: var(--ink-soft); font-weight: 600; font-size: .92rem; }
+  .toolbar .sort { margin-left: auto; }
+  .sort select {
+    font: 600 .9rem "Karla", sans-serif; padding: 9px 14px; border-radius: 999px;
+    border: 1.5px solid var(--line); background: var(--card-bg); color: var(--ink);
+  }
+  .active-chips { display: flex; gap: 8px; flex-wrap: wrap; }
+  .active-chips .chip {
+    display: inline-flex; align-items: center; gap: 6px; background: var(--sage-tint); color: var(--chip-ink);
+    font-weight: 700; font-size: .8rem; padding: 5px 12px; border-radius: 999px;
+  }
+  .active-chips .chip button { background: none; border: none; color: inherit; font-size: 1rem; line-height: 1; }
+
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
+  .card { background: var(--card-bg); border-radius: 18px; overflow: hidden; box-shadow: var(--shadow-sm); border: 1px solid var(--line); transition: transform .18s, box-shadow .18s; }
+  .card:hover { transform: translateY(-5px); box-shadow: var(--shadow-md); }
+  .card .ph { height: 210px; }
+  .card .fav {
+    position: absolute; top: 12px; right: 12px; width: 34px; height: 34px; border-radius: 50%;
+    background: rgb(255 255 255 / .82); border: none; display: grid; place-items: center; color: var(--main);
+    backdrop-filter: blur(3px); transition: transform .15s, background .15s;
+  }
+  .card .fav:hover { transform: scale(1.1); background: #fff; }
+  .card .ph .badge { position: absolute; top: 12px; left: 12px; }
+  .card-body { padding: 15px 17px 18px; }
+  .card-body h3 { font-family: "Fraunces", serif; font-size: 1.08rem; font-weight: 600; color: var(--ink); }
+  .card-sub { font-size: .85rem; color: var(--ink-soft); margin-top: 2px; }
+  .card-foot { display: flex; align-items: center; margin-top: 12px; }
+  .price { font-weight: 700; color: var(--heading); font-size: 1.05rem; }
+  .card-foot .btn { margin-left: auto; }
+
+  /* ============================================================
+     PRODUCT PAGE
+     ============================================================ */
+  .pdp { display: grid; grid-template-columns: 1.05fr .95fr; gap: 48px; padding: 14px 0 20px; align-items: start; }
+  .gallery .main-img { height: 460px; border-radius: 22px; box-shadow: var(--shadow-sm); overflow: hidden; }
+  .gallery .thumbs { display: flex; gap: 12px; margin-top: 14px; }
+  .gallery .thumbs button { width: 84px; height: 84px; border-radius: 14px; border: 2px solid transparent; overflow: hidden; padding: 0; transition: border-color .15s; }
+  .gallery .thumbs button.on { border-color: var(--main); }
+  .gallery .thumbs .ph { width: 100%; height: 100%; }
+
+  .pdp-info h1 { font-size: 2.3rem; font-weight: 600; line-height: 1.08; margin: 12px 0 8px; }
+  .pdp-meta { display: flex; align-items: center; gap: 12px; }
+  .pdp-price { font-family: "Fraunces", serif; font-size: 1.8rem; font-weight: 600; color: var(--heading); margin: 16px 0 6px; }
+  .pdp-price small { font-family: "Karla", sans-serif; font-size: .85rem; font-weight: 600; color: var(--ink-soft); }
+  .pdp-desc { color: var(--ink-soft); margin: 6px 0 22px; }
+
+  .iterations { background: var(--card-bg); border: 1px solid var(--line); border-radius: 18px; padding: 18px 20px; box-shadow: var(--shadow-sm); }
+  .iterations h4 { font-family: "Karla", sans-serif; font-size: .78rem; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-soft); margin-bottom: 12px; }
+  .iter-row { display: flex; gap: 12px; }
+  .iter {
+    width: 76px; cursor: pointer; border-radius: 12px; overflow: hidden; border: 2px solid transparent;
+    background: var(--bg); transition: border-color .15s, transform .15s; position: relative;
+  }
+  .iter:hover { transform: translateY(-3px); border-color: var(--sage); }
+  .iter.on { border-color: var(--main); }
+  .iter .ph { height: 64px; }
+  .iter span { display: block; font-size: .68rem; font-weight: 700; text-align: center; padding: 4px 0; color: var(--ink-soft); }
+  .iter.sold span { color: #b08; }
+  .iter.sold::after { content: "sold"; position: absolute; inset: 0 0 22px 0; background: rgb(255 255 255 / .55); display: grid; place-items: center; font: 700 .7rem "Karla"; text-transform: uppercase; letter-spacing: .1em; color: var(--main); }
+
+  .design-cta { display: grid; grid-template-columns: 1fr auto; gap: 16px; align-items: center; margin: 18px 0; padding: 18px 22px; border-radius: 18px; background: var(--sage-tint); border: 1px solid color-mix(in srgb, var(--sage) 55%, white); color: var(--ink); }
+  .design-cta h4 { font-family: "Fraunces", serif; color: var(--chip-ink); font-size: 1.15rem; }
+  .design-cta p { font-size: .88rem; color: var(--ink-soft); margin-top: 2px; }
+
+  .pdp-actions { display: flex; gap: 12px; margin: 20px 0; }
+  .pdp-actions .btn { flex: 1; justify-content: center; }
+  .fav-big { flex: 0 0 auto !important; width: 52px; padding: 0 !important; }
+
+  .accordion { border-top: 1px solid var(--line); }
+  .accordion details { border-bottom: 1px solid var(--line); }
+  .accordion summary { list-style: none; cursor: pointer; padding: 15px 2px; font-weight: 700; color: var(--heading); display: flex; align-items: center; }
+  .accordion summary::-webkit-details-marker { display: none; }
+  .accordion summary::after { content: "+"; margin-left: auto; font-size: 1.3rem; color: var(--main); transition: transform .2s; }
+  .accordion details[open] summary::after { transform: rotate(45deg); }
+  .accordion .body { padding: 0 2px 16px; color: var(--ink-soft); font-size: .94rem; }
+
+  .related { padding: 26px 0 10px; }
+  .related h2 { font-size: 1.5rem; margin-bottom: 18px; }
+
+  /* ============================================================
+     CONFIGURATOR PAGE
+     ============================================================ */
+  .cfg { display: grid; grid-template-columns: 1.15fr .85fr; gap: 36px; padding: 14px 0 20px; align-items: start; }
+  .cfg-stage {
+    position: sticky; top: 78px; background:
+      radial-gradient(420px 320px at 50% 36%, #fff, transparent 70%), var(--card-bg);
+    border: 1px solid var(--line); border-radius: 24px; box-shadow: var(--shadow-sm);
+    padding: 18px 18px 22px; text-align: center;
+  }
+  .cfg-stage .stage-top { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+  .cfg-stage .stage-top .eyebrow { background: var(--main-tint); color: var(--main); }
+  .cfg-stage .hint { margin-left: auto; font-size: .82rem; color: var(--ink-soft); }
+  .cfg-stage svg { width: 100%; max-width: 380px; }
+  .cfg-stage .slot { cursor: pointer; stroke: var(--logo-line); stroke-width: 1.5; transition: stroke-width .15s; }
+  .cfg-stage .slot:hover { stroke-width: 3; }
+  .cfg-stage .slot.sel { stroke: var(--main); stroke-width: 4; stroke-dasharray: 7 5; }
+
+  .cfg-controls { display: flex; flex-direction: column; gap: 18px; }
+  .panel { background: var(--card-bg); border: 1px solid var(--line); border-radius: 20px; padding: 20px 22px; box-shadow: var(--shadow-sm); }
+  .panel h3 { font-family: "Fraunces", serif; font-size: 1.25rem; }
+  .panel .lede { color: var(--ink-soft); font-size: .92rem; margin-top: 4px; }
+
+  .slot-list { display: flex; flex-direction: column; gap: 8px; margin-top: 6px; }
+  .slot-btn {
+    display: flex; align-items: center; gap: 12px; width: 100%; text-align: left;
+    background: var(--bg); border: 1.5px solid var(--line); border-radius: 14px; padding: 10px 12px;
+    transition: border-color .15s, background .15s;
+  }
+  .slot-btn:hover { border-color: var(--lav); }
+  .slot-btn.sel { border-color: var(--main); background: var(--main-tint); }
+  .slot-btn .swatch-preview { width: 38px; height: 38px; border-radius: 9px; box-shadow: inset 0 0 0 1px rgb(0 0 0 / .08); flex: 0 0 auto; }
+  .slot-btn .slot-name { font-weight: 700; color: var(--heading); }
+  .slot-btn .slot-mat { font-size: .82rem; color: var(--ink-soft); }
+  .slot-btn .pick-tag { margin-left: auto; font-size: .72rem; font-weight: 700; color: var(--main); opacity: 0; }
+  .slot-btn.sel .pick-tag { opacity: 1; }
+
+  .mat-group h4 { font-family: "Karla", sans-serif; font-size: .76rem; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-soft); margin: 14px 0 10px; }
+  .mat-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; }
+  .mat {
+    aspect-ratio: 1; border-radius: 12px; border: 2px solid transparent; padding: 0; overflow: hidden;
+    box-shadow: inset 0 0 0 1px rgb(0 0 0 / .08); position: relative; transition: transform .12s, border-color .12s;
+  }
+  .mat:hover { transform: translateY(-2px); }
+  .mat.on { border-color: var(--main); box-shadow: 0 0 0 3px var(--main-tint); }
+  .mat svg { display: block; width: 100%; height: 100%; }
+  .mat .tip {
+    position: absolute; bottom: -28px; left: 50%; transform: translateX(-50%); white-space: nowrap;
+    background: var(--ink); color: #fff; font-size: .7rem; padding: 3px 8px; border-radius: 6px; opacity: 0; pointer-events: none; transition: opacity .15s; z-index: 5;
+  }
+  .mat:hover .tip { opacity: 1; }
+
+  .cfg-price { display: flex; align-items: center; gap: 14px; padding: 16px 0 4px; }
+  .cfg-price .amt { font-family: "Fraunces", serif; font-size: 1.9rem; font-weight: 600; color: var(--heading); }
+  .cfg-price .note { font-size: .82rem; color: var(--ink-soft); max-width: 22ch; line-height: 1.3; }
+  .cfg-actions { display: flex; gap: 12px; }
+  .cfg-actions .btn { flex: 1; justify-content: center; }
+
+  /* ============================================================
+     CART PAGE
+     ============================================================ */
+  .cart-grid { display: grid; grid-template-columns: 1fr 350px; gap: 32px; padding: 14px 0 20px; align-items: start; }
+  .reserve-note {
+    display: flex; align-items: center; gap: 12px; background: var(--main-tint); color: var(--main);
+    border-radius: 14px; padding: 12px 18px; font-weight: 600; font-size: .92rem; margin-bottom: 18px;
+  }
+  .reserve-note .clock { font-family: "Fraunces", serif; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .cart-list { display: flex; flex-direction: column; gap: 14px; }
+  .cart-item {
+    display: grid; grid-template-columns: 104px 1fr auto; gap: 18px; align-items: center;
+    background: var(--card-bg); border: 1px solid var(--line); border-radius: 18px; padding: 16px; box-shadow: var(--shadow-sm);
+  }
+  .cart-item .thumb { width: 104px; height: 104px; border-radius: 13px; overflow: hidden; }
+  .cart-item .thumb .ph { width: 100%; height: 100%; }
+  .cart-item h3 { font-family: "Fraunces", serif; font-size: 1.15rem; color: var(--heading); }
+  .cart-item .meta { display: flex; gap: 7px; flex-wrap: wrap; margin: 7px 0 9px; }
+  .cart-item .meta .pill { background: var(--bg); border: 1px solid var(--line); border-radius: 999px; font-size: .76rem; font-weight: 600; color: var(--ink-soft); padding: 3px 10px; }
+  .cart-item .row2 { display: flex; align-items: center; gap: 16px; }
+  .qty { display: inline-flex; align-items: center; border: 1.5px solid var(--line); border-radius: 999px; overflow: hidden; }
+  .qty button { background: none; border: none; width: 32px; height: 32px; font-size: 1.1rem; color: var(--main); }
+  .qty button:hover { background: var(--main-tint); }
+  .qty span { min-width: 26px; text-align: center; font-weight: 700; }
+  .remove { background: none; border: none; color: var(--ink-soft); font-weight: 600; font-size: .85rem; }
+  .remove:hover { color: #b3406a; }
+  .cart-item .line-price { font-family: "Fraunces", serif; font-size: 1.25rem; font-weight: 600; color: var(--heading); align-self: start; }
+
+  .summary { position: sticky; top: 78px; background: var(--card-bg); border: 1px solid var(--line); border-radius: 20px; padding: 24px; box-shadow: var(--shadow-sm); }
+  .summary h3 { font-size: 1.3rem; margin-bottom: 16px; }
+  .sum-row { display: flex; justify-content: space-between; padding: 7px 0; color: var(--ink-soft); font-weight: 600; }
+  .sum-row.total { border-top: 1px solid var(--line); margin-top: 8px; padding-top: 14px; color: var(--heading); font-size: 1.2rem; }
+  .sum-row.total .v { font-family: "Fraunces", serif; font-weight: 700; }
+  .summary .btn { width: 100%; justify-content: center; margin-top: 16px; }
+  .summary .reassure { font-size: .8rem; color: var(--ink-soft); text-align: center; margin-top: 12px; line-height: 1.4; }
+  .promo { display: flex; gap: 8px; margin-top: 14px; }
+  .promo input { flex: 1; border: 1.5px solid var(--line); border-radius: 999px; padding: 9px 16px; font: 600 .88rem "Karla"; background: var(--bg); }
+
+  /* ============================================================
+     HOME PAGE
+     ============================================================ */
+  .hero { display: grid; grid-template-columns: 1.05fr .95fr; gap: 54px; align-items: center; padding: 48px 0 52px; }
+  .hero-title { font-size: clamp(2.4rem, 5vw, 3.5rem); font-weight: 600; line-height: 1.06; margin: 20px 0 16px; letter-spacing: -.01em; color: var(--heading); }
+  .hero-title em { font-style: italic; font-weight: 500; color: var(--main); margin-left: -5px; }
+  .hero .lede { font-size: 1.12rem; color: var(--ink-soft); max-width: 46ch; }
+  .hero .cta-row { display: flex; gap: 13px; margin-top: 28px; flex-wrap: wrap; }
+
+  .collage { position: relative; height: 430px; }
+  .collage > div { position: absolute; }
+  .swatch-big {
+    width: 64%; height: 70%; right: 0; top: 4%; border-radius: 26px; box-shadow: var(--shadow-md);
+    background:
+      repeating-linear-gradient(0deg,  transparent 0 22px, color-mix(in srgb, var(--lav) 50%, transparent) 22px 30px),
+      repeating-linear-gradient(90deg, transparent 0 22px, color-mix(in srgb, var(--lav) 50%, transparent) 22px 30px),
+      #f2eef3;
+  }
+  .swatch-dots {
+    width: 44%; height: 46%; left: 4%; bottom: 0; border-radius: 50% 50% 50% 16px; box-shadow: var(--shadow-md);
+    background:
+      radial-gradient(circle at 8px 8px, color-mix(in srgb, var(--sage-deep) 70%, transparent) 4px, transparent 5px) 0 0 / 30px 30px,
+      color-mix(in srgb, var(--sage) 45%, white);
+  }
+  .swatch-stripe {
+    width: 30%; height: 26%; left: 26%; top: 6%; border-radius: 18px; transform: rotate(-7deg);
+    background: repeating-linear-gradient(135deg, color-mix(in srgb, var(--sage) 60%, white) 0 14px, color-mix(in srgb, var(--main) 45%, white) 14px 28px);
+    border: 2px dashed color-mix(in srgb, var(--ink) 30%, transparent);
+  }
+  .collage .tag-price {
+    left: 11%; top: 45%; background: var(--card-bg); border-radius: 14px; padding: 11px 17px;
+    box-shadow: var(--shadow-md); font-weight: 700; font-size: .9rem; transform: rotate(-3deg);
+  }
+  .collage .tag-price span { display: block; font-weight: 400; font-size: .76rem; color: var(--ink-soft); }
+
+  .vstrip {
+    display: flex; gap: 14px; justify-content: space-between; flex-wrap: wrap;
+    border-top: 1px solid var(--line); border-bottom: 1px solid var(--line);
+    padding: 18px 0; font-weight: 600; font-size: .94rem; color: var(--ink-soft);
+  }
+  .vstrip b { color: var(--heading); }
+
+  .section-head { display: flex; align-items: baseline; gap: 18px; margin: 52px 0 22px; }
+  .section-head h2 { font-size: 1.8rem; font-weight: 600; }
+  .section-head a { margin-left: auto; font-weight: 700; font-size: .92rem; color: var(--main); }
+  .section-head a:hover { text-decoration: underline; }
+  .grid-4 { grid-template-columns: repeat(4, 1fr); }
+
+  .band-home {
+    margin-top: 60px; border-radius: 28px; overflow: hidden; color: #f4eef5;
+    background: linear-gradient(120deg, var(--main), var(--main-deep));
+    display: grid; grid-template-columns: 1.1fr .9fr; align-items: center;
+  }
+  .band-home .copy { padding: 52px; }
+  .band-home .eyebrow { background: rgb(255 255 255 / .16); color: #efe6f0; }
+  .band-home h2 { color: #fff; font-size: 2rem; font-weight: 600; margin: 16px 0 12px; line-height: 1.15; }
+  .band-home p { opacity: .86; max-width: 42ch; }
+  .band-home .btn { margin-top: 26px; }
+  .band-home .visual { padding: 38px 46px; display: flex; justify-content: center; }
+  .band-home .visual svg { width: 100%; max-width: 300px; }
+
+  .story { display: grid; grid-template-columns: .8fr 1.2fr; gap: 40px; align-items: center; margin: 60px 0 10px; }
+  .story .portrait { height: 300px; border-radius: 24px; box-shadow: var(--shadow-sm); }
+  .story h2 { font-size: 1.8rem; margin-bottom: 12px; }
+  .story p { color: var(--ink-soft); max-width: 50ch; }
+
+  .favicon-lab { margin: 52px 0 10px; }
+  .favicon-lab p { color: var(--ink-soft); margin: 6px 0 18px; max-width: 56ch; }
+  .fav-options { display: flex; gap: 14px; flex-wrap: wrap; }
+  .fav-opt { display: flex; align-items: center; gap: 10px; background: #ece7ef; border: 2px solid transparent; border-radius: 11px; padding: 9px 16px 9px 11px; font-weight: 700; font-size: .92rem; color: #4a4052; cursor: pointer; transition: border-color .15s, background .15s; }
+  .fav-opt:hover { border-color: var(--lav); }
+  .fav-opt.on { border-color: var(--main); background: var(--main-tint); }
+  .fav-opt svg { width: 20px; height: 20px; display: block; flex: 0 0 auto; }
+  .fav-opt span { line-height: 1.12; }
+  .fav-opt small { display: block; font-size: .68rem; font-weight: 600; color: var(--ink-soft); }
+
+  /* ============================================================
+     FOOTER (shared)
+     ============================================================ */
+  footer { border-top: 1px solid var(--line); margin-top: 50px; padding: 24px 0; font-size: .88rem; color: var(--ink-soft); display: flex; gap: 22px; flex-wrap: wrap; align-items: center; }
+  footer .sep { margin-left: auto; }
+  footer a:hover { color: var(--main); }
+
+  /* ============================================================
+     PAGE SWITCHER
+     ============================================================ */
+  .switcher {
+    position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%);
+    background: #2a232f; color: #f5f2ec; border-radius: 16px; padding: 9px 12px;
+    display: flex; align-items: center; gap: 7px; box-shadow: 0 16px 40px rgb(42 35 47 / .4); z-index: 60;
+  }
+  .switcher .lab { font-size: .72rem; letter-spacing: .14em; text-transform: uppercase; opacity: .55; padding: 0 8px 0 4px; }
+  .sw-btn { border: 2px solid transparent; background: #3c3343; color: #f5f2ec; border-radius: 11px; padding: 8px 14px; font: 700 .86rem "Karla"; display: flex; align-items: center; gap: 8px; transition: border-color .15s, transform .15s, background .15s; }
+  .sw-btn:hover { transform: translateY(-1px); background: #4a4052; }
+  .sw-btn.active { border-color: #cabccf; background: #4a4052; }
+  .sw-btn .num { background: rgb(255 255 255 / .16); border-radius: 6px; padding: 1px 7px; font-size: .76rem; }
+  .sw-btn.active .num { background: var(--lav); color: #2a232f; }
+
+  /* toast */
+  .toast { position: fixed; left: 50%; bottom: 84px; transform: translate(-50%, 20px); background: var(--main); color: #fff; padding: 12px 22px; border-radius: 999px; font-weight: 700; box-shadow: var(--shadow-md); opacity: 0; pointer-events: none; transition: opacity .25s, transform .25s; z-index: 70; }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+  /* ============================================================
+     RESPONSIVE
+     ============================================================ */
+  @media (max-width: 980px) {
+    .catalog-grid { grid-template-columns: 1fr; }
+    .filters { position: static; }
+    .grid { grid-template-columns: repeat(2, 1fr); }
+    .pdp, .cfg, .cart-grid { grid-template-columns: 1fr; }
+    .cfg-stage, .summary { position: static; }
+    .nav-links { display: none; }
+    .switcher { flex-wrap: wrap; justify-content: center; max-width: 94vw; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ===================== LOGO SYMBOLS ===================== -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <path id="swatch-shape" d="M34,24
+      l5,-6 l5,6 l5,-6 l5,6 l5,-6 l5,6 l5,-6 l5,6 l5,-6 l5,6 l5,-6 l5,6
+      l6,5 l-6,5 l6,5 l-6,5 l6,5 l-6,5 l6,5 l-6,5 l6,5 l-6,5 l6,5 l-6,5
+      l-5,6 l-5,-6 l-5,6 l-5,-6 l-5,6 l-5,-6 l-5,6 l-5,-6 l-5,6 l-5,-6 l-5,6 l-5,-6
+      l-6,-5 l6,-5 l-6,-5 l6,-5 l-6,-5 l6,-5 l-6,-5 l6,-5 l-6,-5 l6,-5 l-6,-5 l6,-5 Z"/>
+    <clipPath id="swatch-clip"><use href="#swatch-shape" transform="rotate(5 64 54)"/></clipPath>
+    <clipPath id="yarn-clip"><circle cx="47" cy="82" r="29"/></clipPath>
+    <g id="nanalu-mark">
+      <g transform="rotate(5 64 54)"><use href="#swatch-shape" fill="var(--logo-swatch)"/></g>
+      <g clip-path="url(#swatch-clip)" opacity=".85">
+        <rect x="48" y="6" width="9" height="100" fill="var(--logo-plaid)" opacity=".5"/>
+        <rect x="74" y="6" width="9" height="100" fill="var(--logo-plaid)" opacity=".5"/>
+        <rect x="20" y="40" width="110" height="9" fill="var(--logo-plaid)" opacity=".5"/>
+        <rect x="20" y="64" width="110" height="9" fill="var(--logo-plaid)" opacity=".5"/>
+        <rect x="63" y="6" width="2.4" height="100" fill="var(--logo-line)" opacity=".55"/>
+        <rect x="20" y="54.5" width="110" height="2.4" fill="var(--logo-line)" opacity=".55"/>
+      </g>
+      <g transform="rotate(5 64 54)"><use href="#swatch-shape" fill="none" stroke="var(--logo-line)" stroke-width="2" stroke-linejoin="round"/></g>
+      <g stroke="var(--logo-line)" fill="none" stroke-linecap="round">
+        <path d="M86,106 L126,90" stroke-width="3.4"/>
+        <circle cx="121.5" cy="91.8" r="2.6" stroke-width="1.8" fill="var(--bg)"/>
+        <path d="M124,94 C133,101 127,112 110,114" stroke-width="1.7" opacity=".9"/>
+      </g>
+      <circle cx="47" cy="82" r="29" fill="var(--logo-yarn)"/>
+      <g clip-path="url(#yarn-clip)" stroke="var(--logo-line)" stroke-width="2.2" fill="none" opacity=".75">
+        <path d="M16,72 Q47,90 78,70"/><path d="M18,88 Q49,104 77,86"/><path d="M26,60 Q50,74 74,98"/>
+        <path d="M34,108 Q38,76 58,55"/><path d="M64,108 Q70,84 76,76"/>
+      </g>
+      <circle cx="47" cy="82" r="29" fill="none" stroke="var(--logo-line)" stroke-width="2.2"/>
+      <g stroke="var(--logo-line)" stroke-width="2.6" stroke-linecap="round">
+        <path d="M39,62 L23,30"/><path d="M51,59 L45,22"/>
+      </g>
+      <circle cx="22" cy="27" r="3.6" fill="var(--logo-cap)" stroke="var(--logo-line)" stroke-width="1.6"/>
+      <circle cx="44.5" cy="19" r="3.6" fill="var(--logo-cap)" stroke="var(--logo-line)" stroke-width="1.6"/>
+    </g>
+  </defs>
+</svg>
+
+<!-- ===================== NAVBAR ===================== -->
+<nav>
+  <div class="nav-inner">
+    <a class="brand" href="#" data-goto="0">
+      <svg viewBox="0 0 134 122"><use href="#nanalu-mark"/></svg>
+      <span class="brand-name">Nanalu<small>Boutique</small></span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="#" data-goto="1" data-nav="shop">Shop</a></li>
+      <li><a href="#" data-goto="3" data-nav="design">Design your own</a></li>
+      <li><a href="#" data-goto="0">Our story</a></li>
+    </ul>
+    <div class="nav-actions">
+      <button class="icon-btn" title="Search" aria-label="Search">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4" stroke-linecap="round"/></svg>
+      </button>
+      <button class="icon-btn" title="Favorites" aria-label="Favorites">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 20s-7-4.5-7-10a4 4 0 017-2.5A4 4 0 0119 10c0 5.5-7 10-7 10z" stroke-linejoin="round"/></svg>
+      </button>
+      <button class="nav-cart" data-goto="4">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 7h13l-1.2 9.5a2 2 0 01-2 1.7H9.2a2 2 0 01-2-1.7L6 4H3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Cart <span class="count" id="navCount">3</span>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<!-- ===================== 1 · HOME ===================== -->
+<section class="page active" id="page-0">
+  <div class="wrap">
+    <section class="hero">
+      <div>
+        <span class="eyebrow rise">Handmade by two sisters</span>
+        <h1 class="hero-title rise d1">Made by hand.<br /><em>Designed by you.</em></h1>
+        <p class="lede rise d2">One-of-a-kind sewn &amp; knit pieces, ready to ship — or pick your own
+          fabrics and we'll make yours from scratch. Every fabric shown at its true scale.</p>
+        <div class="cta-row rise d3">
+          <button class="btn btn-primary" data-goto="1">Shop ready-made</button>
+          <button class="btn btn-accent" data-goto="3">Design your own</button>
+        </div>
+      </div>
+      <div class="collage rise d2" aria-hidden="true">
+        <div class="swatch-big"></div>
+        <div class="swatch-stripe"></div>
+        <div class="swatch-dots"></div>
+        <div class="tag-price">Scrunchie set — €18 <span>one of a kind</span></div>
+      </div>
+    </section>
+
+    <div class="vstrip rise d3">
+      <span><b>✂︎ Sewn &amp; knit by hand</b> — no two alike</span>
+      <span><b>⊞ True-scale fabrics</b> — what you see is the real print size</span>
+      <span><b>♡ Made-to-order</b> — your fabric, your piece</span>
+    </div>
+
+    <div class="section-head">
+      <h2>Fresh from the sewing table</h2>
+      <a href="#" data-goto="1">Browse everything →</a>
+    </div>
+    <div class="grid grid-4" id="homeFeatured"></div>
+
+    <section class="band-home">
+      <div class="copy">
+        <span class="eyebrow">The configurator</span>
+        <h2>Paint-bucket your favourite fabric onto any piece.</h2>
+        <p>Pick a product, tap a fabric, fill a section — and watch your piece come together
+          with every print shown at its real size. Fixed price, endless combinations.</p>
+        <button class="btn btn-accent" data-goto="3">Try the configurator →</button>
+      </div>
+      <div class="visual" aria-hidden="true">
+        <svg viewBox="0 0 134 122"><use href="#nanalu-mark"/></svg>
+      </div>
+    </section>
+
+    <section class="story">
+      <div class="portrait ph ph-lavgingham"></div>
+      <div>
+        <span class="eyebrow">Our story</span>
+        <h2 style="margin-top:14px;">Two sisters, one sewing table</h2>
+        <p>Nanalu Boutique began with a fabric stash too pretty to waste and a love of making
+          things by hand. Everything in the shop is sewn, knit, or crocheted by the two of us —
+          and now you can design your own.</p>
+        <button class="btn btn-ghost" data-goto="1" style="margin-top:18px;">Meet the makers</button>
+      </div>
+    </section>
+
+    <section class="favicon-lab">
+      <span class="eyebrow">Browser tab icon</span>
+      <h2 style="margin-top:14px;">The fabric swatch, in the tab</h2>
+      <p>Most pieces are sewn, so the browser favicon is a little plaid swatch rather than the
+        yarn ball. Click a version to preview it live in your browser tab — the recommended one is selected.</p>
+      <div class="fav-options" id="favOptions"></div>
+    </section>
+  </div>
+</section>
+
+<!-- ===================== 2 · CATALOG ===================== -->
+<section class="page" id="page-1">
+  <div class="wrap">
+    <div class="page-head rise">
+      <div class="breadcrumb"><a href="#" data-goto="0">Home</a><span>/</span>Shop all</div>
+      <h1>The whole collection</h1>
+      <p>One-of-a-kind sewn &amp; knit pieces — and anything marked <em>customizable</em> can be made in your own fabrics.</p>
+    </div>
+
+    <div class="catalog-grid">
+      <aside class="filters rise d1">
+        <h4>Category</h4>
+        <ul class="filter-list">
+          <li><button class="on">All pieces <span class="n">24</span></button></li>
+          <li><button>Bags &amp; totes <span class="n">7</span></button></li>
+          <li><button>Pouches <span class="n">5</span></button></li>
+          <li><button>Home &amp; cushions <span class="n">6</span></button></li>
+          <li><button>Knitwear <span class="n">4</span></button></li>
+          <li><button>Accessories <span class="n">2</span></button></li>
+        </ul>
+        <h4>Availability</h4>
+        <label class="check"><input type="checkbox" checked /> Ready to ship</label>
+        <label class="check"><input type="checkbox" checked /> Customizable</label>
+        <h4>Fabric colour</h4>
+        <div class="swatch-filter">
+          <span style="background:#7a5a7d"></span><span style="background:#B39FB5"></span>
+          <span style="background:#B6C7A1"></span><span style="background:#6f8456"></span>
+          <span style="background:#c08457"></span><span style="background:#efe9dc"></span>
+        </div>
+        <h4>Price</h4>
+        <input type="range" min="0" max="100" value="70" style="width:100%; accent-color:var(--main)" />
+        <div style="display:flex; justify-content:space-between; font-size:.8rem; color:var(--ink-soft); font-weight:600;"><span>€0</span><span>€100+</span></div>
+      </aside>
+
+      <div class="catalog-main">
+        <div class="toolbar rise d1">
+          <span class="count">24 pieces</span>
+          <div class="active-chips">
+            <span class="chip">Ready to ship <button>×</button></span>
+            <span class="chip">Customizable <button>×</button></span>
+          </div>
+          <div class="sort">
+            <select><option>Sort: Newest</option><option>Price: low to high</option><option>Price: high to low</option><option>Most loved</option></select>
+          </div>
+        </div>
+        <div class="grid" id="catalogGrid"><!-- filled by JS --></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 3 · PRODUCT ===================== -->
+<section class="page" id="page-2">
+  <div class="wrap">
+    <div class="page-head rise" style="padding-bottom:0">
+      <div class="breadcrumb"><a href="#" data-goto="0">Home</a><span>/</span><a href="#" data-goto="1">Bags &amp; totes</a><span>/</span>Picnic tote bag</div>
+    </div>
+    <div class="pdp">
+      <div class="gallery rise">
+        <div class="main-img ph ph-gingham" id="pdpMain"></div>
+        <div class="thumbs" id="pdpThumbs">
+          <button class="on" data-ph="ph-gingham"><span class="ph ph-gingham"></span></button>
+          <button data-ph="ph-dots"><span class="ph ph-dots"></span></button>
+          <button data-ph="ph-stripes"><span class="ph ph-stripes"></span></button>
+          <button data-ph="ph-weave"><span class="ph ph-weave"></span></button>
+        </div>
+      </div>
+
+      <div class="pdp-info rise d1">
+        <div class="pdp-meta">
+          <span class="tag tag-custom">Customizable</span>
+          <span style="color:var(--ink-soft); font-size:.88rem; font-weight:600;">★ 4.9 · handmade to order</span>
+        </div>
+        <h1>Picnic tote bag</h1>
+        <div class="pdp-price">€48 <small>· fixed price, any fabric combination</small></div>
+        <p class="pdp-desc">A roomy lined tote with a front pocket and sturdy webbing straps — sewn by hand from your choice of cottons. Pick a ready-made one below, or design your own in the configurator.</p>
+
+        <div class="iterations">
+          <h4>In stock now — one of a kind</h4>
+          <div class="iter-row">
+            <div class="iter on"><div class="ph ph-gingham"></div><span>Piece 01</span></div>
+            <div class="iter"><div class="ph ph-lavgingham"></div><span>Piece 02</span></div>
+            <div class="iter sold"><div class="ph ph-stripes"></div><span>Piece 03</span></div>
+          </div>
+        </div>
+
+        <div class="design-cta">
+          <div>
+            <h4>Want a different fabric?</h4>
+            <p>Design your own in the configurator — same €48, your fabrics.</p>
+          </div>
+          <button class="btn btn-accent" data-goto="3">Design your own →</button>
+        </div>
+
+        <div class="pdp-actions">
+          <button class="btn btn-primary" data-addcart="Picnic tote bag · Piece 01" data-price="48">Add to cart — €48</button>
+          <button class="btn btn-ghost fav-big" aria-label="Save">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 20s-7-4.5-7-10a4 4 0 017-2.5A4 4 0 0119 10c0 5.5-7 10-7 10z" stroke-linejoin="round"/></svg>
+          </button>
+        </div>
+
+        <div class="accordion">
+          <details open><summary>Fabric &amp; materials</summary><div class="body">Outer: 100% cotton canvas. Lining: quilting cotton. Straps: cotton webbing. Every fabric in the configurator is shown at its true real-world scale, so the print you see is the print you get.</div></details>
+          <details><summary>Dimensions</summary><div class="body">38 cm wide × 40 cm tall × 12 cm deep. Strap drop 26 cm. Front pocket 20 × 16 cm.</div></details>
+          <details><summary>Care</summary><div class="body">Cold hand-wash, reshape and dry flat. Warm iron on the reverse. Knit/crochet pieces follow the care card included with your order.</div></details>
+          <details><summary>Made to order &amp; returns</summary><div class="body">Custom-made pieces are produced just for you and are exempt from the EU 14-day right of withdrawal — please double-check your fabric choices. Ready-made pieces follow our standard returns policy.</div></details>
+        </div>
+      </div>
+    </div>
+
+    <div class="related">
+      <h2>You may also like</h2>
+      <div class="grid" id="relatedGrid"><!-- filled by JS --></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 4 · CONFIGURATOR ===================== -->
+<section class="page" id="page-3">
+  <div class="wrap">
+    <div class="page-head rise" style="padding-bottom:6px">
+      <div class="breadcrumb"><a href="#" data-goto="0">Home</a><span>/</span><a href="#" data-goto="2">Picnic tote bag</a><span>/</span>Design your own</div>
+      <h1>Design your picnic tote</h1>
+      <p>Pick a section, choose a fabric, and watch it fill — every print shown at its true scale. One fixed price, whatever you choose.</p>
+    </div>
+
+    <div class="cfg">
+      <!-- live preview -->
+      <div class="cfg-stage rise">
+        <div class="stage-top">
+          <span class="eyebrow">Live preview</span>
+          <span class="hint">Tap a section on the bag, then pick a fabric →</span>
+        </div>
+        <svg viewBox="0 0 400 460" id="toteSvg" aria-label="Tote preview">
+          <!-- straps (behind body) -->
+          <path class="slot" data-slot="straps" d="M104,168 C104,58 168,58 168,168 L152,168 C152,80 120,80 120,168 Z"/>
+          <path class="slot" data-slot="straps" d="M232,168 C232,58 296,58 296,168 L280,168 C280,80 248,80 248,168 Z"/>
+          <!-- body -->
+          <path class="slot" data-slot="body" d="M74,168 L326,168 L338,420 Q339,438 321,438 L79,438 Q61,438 62,420 Z"/>
+          <!-- top trim -->
+          <path class="slot" data-slot="trim" d="M74,168 L326,168 L330,196 Q330,198 328,198 L72,198 Q70,198 70,196 Z"/>
+          <!-- pocket -->
+          <path class="slot" data-slot="pocket" d="M140,266 L260,266 Q266,266 266,272 L266,374 Q266,380 260,380 L140,380 Q134,380 134,374 L134,272 Q134,266 140,266 Z"/>
+        </svg>
+        <div style="font-size:.82rem; color:var(--ink-soft); margin-top:6px;">Selected: <b id="selName" style="color:var(--main)">Body</b></div>
+      </div>
+
+      <!-- controls -->
+      <div class="cfg-controls">
+        <div class="panel rise d1">
+          <h3>1 · Choose a section</h3>
+          <p class="lede">Each section fills with one material. The straps move together.</p>
+          <div class="slot-list" id="slotList"></div>
+        </div>
+
+        <div class="panel rise d2">
+          <h3>2 · Pick a material</h3>
+          <p class="lede">Patterned fabrics tile at real-world scale; solid colours fill flat.</p>
+          <div class="mat-group">
+            <h4>Patterned fabrics</h4>
+            <div class="mat-grid" id="matFabrics"></div>
+          </div>
+          <div class="mat-group">
+            <h4>Solid colours</h4>
+            <div class="mat-grid" id="matSolids"></div>
+          </div>
+        </div>
+
+        <div class="panel rise d3">
+          <div class="cfg-price">
+            <span class="amt">€48</span>
+            <span class="note">Fixed price — fabric choice never changes it, like flat-priced sizes.</span>
+          </div>
+          <div class="cfg-actions">
+            <button class="btn btn-primary" data-addcart="Picnic tote — your design" data-price="48">Add my design to cart</button>
+            <button class="btn btn-ghost" id="cfgReset">Reset</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 5 · CART ===================== -->
+<section class="page" id="page-4">
+  <div class="wrap">
+    <div class="page-head rise">
+      <div class="breadcrumb"><a href="#" data-goto="0">Home</a><span>/</span>Cart</div>
+      <h1>Your cart</h1>
+    </div>
+    <div class="cart-grid">
+      <div>
+        <div class="reserve-note rise">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          These one-of-a-kind pieces are reserved for you — <span class="clock" id="reserveClock">14:58</span> left
+        </div>
+        <div class="cart-list" id="cartList"></div>
+      </div>
+
+      <aside class="summary rise d1">
+        <h3>Summary</h3>
+        <div class="sum-row"><span>Subtotal</span><span class="v" id="sumSubtotal">€107.00</span></div>
+        <div class="sum-row"><span>Shipping</span><span class="v">€4.90</span></div>
+        <div class="sum-row"><span>Made-to-order items</span><span class="v">1</span></div>
+        <div class="sum-row total"><span>Total</span><span class="v" id="sumTotal">€111.90</span></div>
+        <div class="promo">
+          <input placeholder="Promo code" /><button class="btn btn-accent btn-sm">Apply</button>
+        </div>
+        <button class="btn btn-primary">Go to checkout →</button>
+        <p class="reassure">🔒 Secure checkout with Stripe · card details never touch our servers</p>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<footer class="wrap">
+  <span>© 2026 Nanalu Boutique — handmade by two sisters</span>
+  <a class="sep" href="#" data-goto="0">Shipping</a><a href="#">Returns</a><a href="#">Privacy</a><a href="#">Impressum</a>
+</footer>
+
+<!-- ===================== PAGE SWITCHER ===================== -->
+<div class="switcher" role="toolbar" aria-label="Page switcher">
+  <span class="lab">Page</span>
+  <div id="swBtns" style="display:flex; gap:7px;"></div>
+</div>
+
+<div class="toast" id="toast">Added to cart ✓</div>
+
+<script>
+  /* ---------- fabric pattern swatch helper (for material picker) ---------- */
+  const PATTERN_DEFS = `
+    <defs>
+      <pattern id="sw-gingham-sage" width="14" height="14" patternUnits="userSpaceOnUse">
+        <rect width="14" height="14" fill="#eef2e6"/><rect width="7" height="14" fill="#b6c79f" opacity=".6"/><rect width="14" height="7" fill="#b6c79f" opacity=".6"/>
+      </pattern>
+      <pattern id="sw-gingham-lav" width="14" height="14" patternUnits="userSpaceOnUse">
+        <rect width="14" height="14" fill="#f2eef3"/><rect width="7" height="14" fill="#b39fb5" opacity=".6"/><rect width="14" height="7" fill="#b39fb5" opacity=".6"/>
+      </pattern>
+      <pattern id="sw-dots-plum" width="13" height="13" patternUnits="userSpaceOnUse">
+        <rect width="13" height="13" fill="#f1ecf2"/><circle cx="4" cy="4" r="2.1" fill="#7a5a7d"/>
+      </pattern>
+      <pattern id="sw-stripes-clay" width="14" height="14" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+        <rect width="14" height="14" fill="#e8cdb4"/><rect width="7" height="14" fill="#cf9a6d"/>
+      </pattern>
+      <pattern id="sw-weave-sage" width="12" height="12" patternUnits="userSpaceOnUse">
+        <rect width="12" height="12" fill="#e8eedd"/>
+        <path d="M0,0 L12,12 M0,12 L12,0" stroke="#8aa06b" stroke-width="2.4" opacity=".6"/>
+      </pattern>
+      <pattern id="sw-chevron-plum" width="16" height="10" patternUnits="userSpaceOnUse">
+        <rect width="16" height="10" fill="#f1ecf2"/>
+        <path d="M0,9 L4,3 L8,9 L12,3 L16,9" fill="none" stroke="#a07ea3" stroke-width="2.4"/>
+      </pattern>
+    </defs>`;
+
+  /* materials: patterns reference the defs above; solids are hex */
+  const FABRICS = [
+    { id: 'gingham-sage', label: 'Sage gingham',  fill: 'url(#sw-gingham-sage)' },
+    { id: 'gingham-lav',  label: 'Lavender gingham', fill: 'url(#sw-gingham-lav)' },
+    { id: 'dots-plum',    label: 'Plum dots',     fill: 'url(#sw-dots-plum)' },
+    { id: 'stripes-clay', label: 'Clay stripes',  fill: 'url(#sw-stripes-clay)' },
+    { id: 'weave-sage',   label: 'Sage weave',    fill: 'url(#sw-weave-sage)' },
+    { id: 'chevron-plum', label: 'Plum chevron',  fill: 'url(#sw-chevron-plum)' },
+  ];
+  const SOLIDS = [
+    { id: 's-plum',  label: 'Plum',     fill: '#7a5a7d' },
+    { id: 's-lav',   label: 'Lavender', fill: '#B39FB5' },
+    { id: 's-sage',  label: 'Sage',     fill: '#B6C7A1' },
+    { id: 's-fern',  label: 'Fern',     fill: '#6f8456' },
+    { id: 's-clay',  label: 'Clay',     fill: '#c08457' },
+    { id: 's-cream', label: 'Cream',    fill: '#efe9dc' },
+  ];
+  const MAT_BY_ID = Object.fromEntries([...FABRICS, ...SOLIDS].map(m => [m.id, m]));
+
+  function swatchSVG(fill, size) {
+    return `<svg viewBox="0 0 40 40" width="${size||'100%'}" height="${size||'100%'}">${PATTERN_DEFS}<rect width="40" height="40" rx="3" fill="${fill}"/></svg>`;
+  }
+
+  /* ---------- catalog + related products ---------- */
+  const PRODUCTS = [
+    { name: 'Picnic tote bag',    sub: 'Bags & totes',   price: 48, ph: 'ph-gingham',    custom: true },
+    { name: 'Dotted zip pouch',   sub: 'Pouches',        price: 24, ph: 'ph-dots',       custom: true },
+    { name: 'Striped knit beanie',sub: 'Knitwear',       price: 35, ph: 'ph-stripes',    custom: false },
+    { name: 'Zigzag cushion',     sub: 'Home & cushions',price: 38, ph: 'ph-chevron',    custom: true },
+    { name: 'Sage weave apron',   sub: 'Accessories',    price: 44, ph: 'ph-weave',      custom: true },
+    { name: 'Lavender bucket hat',sub: 'Accessories',    price: 29, ph: 'ph-lavgingham', custom: false },
+    { name: 'Crochet market bag',  sub: 'Bags & totes',  price: 52, ph: 'ph-solidsage',  custom: false },
+    { name: 'Quilted makeup roll', sub: 'Pouches',       price: 27, ph: 'ph-gingham',    custom: true },
+    { name: 'Patchwork throw',     sub: 'Home & cushions',price: 86, ph: 'ph-stripes',   custom: true },
+  ];
+
+  const heart = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 20s-7-4.5-7-10a4 4 0 017-2.5A4 4 0 0119 10c0 5.5-7 10-7 10z" stroke-linejoin="round"/></svg>`;
+
+  function cardHTML(p) {
+    return `<article class="card" data-goto="2">
+      <div class="ph ${p.ph}">
+        <span class="badge tag ${p.custom ? 'tag-custom' : 'tag-ooak'}">${p.custom ? 'Customizable' : 'One of a kind'}</span>
+        <button class="fav" aria-label="Save">${heart}</button>
+      </div>
+      <div class="card-body">
+        <h3>${p.name}</h3>
+        <div class="card-sub">${p.sub}</div>
+        <div class="card-foot">
+          <span class="price">€${p.price}</span>
+          <button class="btn btn-accent btn-sm" data-addcart="${p.name}" data-price="${p.price}">Add</button>
+        </div>
+      </div>
+    </article>`;
+  }
+
+  document.getElementById('catalogGrid').innerHTML = PRODUCTS.map(cardHTML).join('');
+  document.getElementById('relatedGrid').innerHTML = PRODUCTS.slice(1, 5).map(cardHTML).join('');
+  document.getElementById('homeFeatured').innerHTML = PRODUCTS.slice(0, 4).map(cardHTML).join('');
+
+  /* ---------- product gallery thumbs ---------- */
+  const pdpMain = document.getElementById('pdpMain');
+  document.getElementById('pdpThumbs').addEventListener('click', (e) => {
+    const btn = e.target.closest('button'); if (!btn) return;
+    document.querySelectorAll('#pdpThumbs button').forEach(b => b.classList.remove('on'));
+    btn.classList.add('on');
+    pdpMain.className = 'main-img ph ' + btn.dataset.ph;
+  });
+
+  /* ---------- configurator ---------- */
+  const SLOTS = [
+    { id: 'body',   label: 'Body',   def: 'gingham-sage' },
+    { id: 'pocket', label: 'Pocket', def: 's-plum' },
+    { id: 'straps', label: 'Straps', def: 's-plum' },
+    { id: 'trim',   label: 'Top trim', def: 's-fern' },
+  ];
+  let slotMat = Object.fromEntries(SLOTS.map(s => [s.id, s.def]));
+  let selectedSlot = 'body';
+
+  const toteSvg = document.getElementById('toteSvg');
+  const slotListEl = document.getElementById('slotList');
+  const selNameEl = document.getElementById('selName');
+
+  function applyFillToSvg(slotId) {
+    const fill = MAT_BY_ID[slotMat[slotId]].fill;
+    toteSvg.querySelectorAll(`[data-slot="${slotId}"]`).forEach(el => el.setAttribute('fill', fill));
+  }
+  function renderSlotList() {
+    slotListEl.innerHTML = SLOTS.map(s => {
+      const m = MAT_BY_ID[slotMat[s.id]];
+      return `<button class="slot-btn ${s.id === selectedSlot ? 'sel' : ''}" data-slot="${s.id}">
+        <span class="swatch-preview">${swatchSVG(m.fill)}</span>
+        <span><span class="slot-name">${s.label}</span><br><span class="slot-mat">${m.label}</span></span>
+        <span class="pick-tag">▸ picking</span>
+      </button>`;
+    }).join('');
+  }
+  function setSelected(slotId) {
+    selectedSlot = slotId;
+    selNameEl.textContent = SLOTS.find(s => s.id === slotId).label;
+    toteSvg.querySelectorAll('.slot').forEach(el => el.classList.toggle('sel', el.dataset.slot === slotId));
+    renderSlotList();
+  }
+  function applyMaterial(matId) {
+    slotMat[selectedSlot] = matId;
+    applyFillToSvg(selectedSlot);
+    renderSlotList();
+    syncMatSelection();
+  }
+  function syncMatSelection() {
+    const cur = slotMat[selectedSlot];
+    document.querySelectorAll('.mat').forEach(b => b.classList.toggle('on', b.dataset.mat === cur));
+  }
+
+  // build material swatch buttons
+  function matButton(m) {
+    return `<button class="mat" data-mat="${m.id}" title="${m.label}">${swatchSVG(m.fill)}<span class="tip">${m.label}</span></button>`;
+  }
+  document.getElementById('matFabrics').innerHTML = FABRICS.map(matButton).join('');
+  document.getElementById('matSolids').innerHTML = SOLIDS.map(matButton).join('');
+
+  // init fills + interactions
+  SLOTS.forEach(s => applyFillToSvg(s.id));
+  setSelected('body');
+
+  toteSvg.addEventListener('click', e => { const s = e.target.closest('.slot'); if (s) setSelected(s.dataset.slot); });
+  slotListEl.addEventListener('click', e => { const b = e.target.closest('.slot-btn'); if (b) setSelected(b.dataset.slot); });
+  document.querySelectorAll('.mat').forEach(b => b.addEventListener('click', () => applyMaterial(b.dataset.mat)));
+  document.getElementById('cfgReset').addEventListener('click', () => {
+    slotMat = Object.fromEntries(SLOTS.map(s => [s.id, s.def]));
+    SLOTS.forEach(s => applyFillToSvg(s.id));
+    renderSlotList(); syncMatSelection();
+    flash('Reset to default');
+  });
+
+  /* ---------- cart ---------- */
+  let cart = [
+    { name: 'Picnic tote bag', note: 'Your design · Body: Sage gingham · Pocket: Plum', price: 48, qty: 1, ph: 'ph-gingham', custom: true },
+    { name: 'Dotted zip pouch', note: 'One of a kind', price: 24, qty: 1, ph: 'ph-dots', custom: false },
+    { name: 'Striped knit beanie', note: 'One of a kind', price: 35, qty: 1, ph: 'ph-stripes', custom: false },
+  ];
+  const SHIP = 4.90;
+  const cartListEl = document.getElementById('cartList');
+
+  function money(n) { return '€' + n.toFixed(2); }
+  function renderCart() {
+    cartListEl.innerHTML = cart.map((it, i) => `
+      <div class="cart-item">
+        <div class="thumb"><div class="ph ${it.ph}"></div></div>
+        <div>
+          <h3>${it.name}</h3>
+          <div class="meta">
+            <span class="pill">${it.custom ? '🧵 Made to order' : '✦ One of a kind'}</span>
+            <span class="pill">${it.note}</span>
+          </div>
+          <div class="row2">
+            <span class="qty"><button data-q="-" data-i="${i}">−</button><span>${it.qty}</span><button data-q="+" data-i="${i}">+</button></span>
+            <button class="remove" data-rm="${i}">Remove</button>
+          </div>
+        </div>
+        <div class="line-price">${money(it.price * it.qty)}</div>
+      </div>`).join('');
+    const subtotal = cart.reduce((s, it) => s + it.price * it.qty, 0);
+    const custom = cart.filter(it => it.custom).reduce((s, it) => s + it.qty, 0);
+    document.getElementById('sumSubtotal').textContent = money(subtotal);
+    document.getElementById('sumTotal').textContent = money(subtotal + (cart.length ? SHIP : 0));
+    document.querySelector('.sum-row:nth-child(3) .v') && (document.querySelectorAll('.summary .sum-row')[2].querySelector('.v').textContent = custom);
+    const totalQty = cart.reduce((s, it) => s + it.qty, 0);
+    document.getElementById('navCount').textContent = totalQty;
+  }
+  cartListEl.addEventListener('click', e => {
+    const inc = e.target.closest('[data-q]'); const rm = e.target.closest('[data-rm]');
+    if (inc) { const i = +inc.dataset.i; cart[i].qty = Math.max(1, cart[i].qty + (inc.dataset.q === '+' ? 1 : -1)); renderCart(); }
+    if (rm) { cart.splice(+rm.dataset.rm, 1); renderCart(); }
+  });
+
+  /* ---------- add-to-cart buttons (delegated) ---------- */
+  let toastTimer;
+  function flash(msg) {
+    const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show');
+    clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 1600);
+  }
+  document.addEventListener('click', e => {
+    const a = e.target.closest('[data-addcart]'); if (!a) return;
+    e.preventDefault(); e.stopPropagation();
+    const name = a.dataset.addcart; const price = +a.dataset.price;
+    const existing = cart.find(it => it.name === name && it.note !== 'Your design');
+    cart.push({ name, note: name.includes('design') ? 'Your design' : 'Added just now', price, qty: 1,
+      ph: (PRODUCTS.find(p => p.name === name) || {}).ph || 'ph-gingham', custom: name.includes('design') });
+    renderCart(); flash('Added to cart ✓');
+  });
+
+  /* ---------- reservation countdown ---------- */
+  let secs = 14 * 60 + 58;
+  const clockEl = document.getElementById('reserveClock');
+  setInterval(() => {
+    if (secs > 0) secs--;
+    const m = String(Math.floor(secs / 60)).padStart(2, '0');
+    const s = String(secs % 60).padStart(2, '0');
+    clockEl.textContent = `${m}:${s}`;
+  }, 1000);
+
+  /* ---------- favicon (fabric swatch, sewing-forward) ---------- */
+  const FAV_ZZ = "M14,26 l6,-10 l6,10 l6,-10 l6,10 l6,-10 l6,10 l6,-10 l6,10 l6,-10 l6,10 l6,-10 l6,10 "
+    + "l10,6 l-10,6 l10,6 l-10,6 l10,6 l-10,6 l10,6 l-10,6 "
+    + "l-6,10 l-6,-10 l-6,10 l-6,-10 l-6,10 l-6,-10 l-6,10 l-6,-10 l-6,10 l-6,-10 l-6,10 l-6,-10 "
+    + "l-10,-6 l10,-6 l-10,-6 l10,-6 l-10,-6 l10,-6 l-10,-6 l10,-6 Z";
+  function favPlaid(c, w1, w2) {
+    return `<rect x="34" y="8" width="${w1}" height="84" fill="${c}" opacity=".5"/>`
+      + `<rect x="60" y="8" width="${w1}" height="84" fill="${c}" opacity=".5"/>`
+      + `<rect x="8" y="34" width="84" height="${w1}" fill="${c}" opacity=".5"/>`
+      + `<rect x="8" y="60" width="84" height="${w1}" fill="${c}" opacity=".5"/>`
+      + `<rect x="49" y="8" width="${w2}" height="84" fill="${c}"/>`
+      + `<rect x="8" y="49" width="84" height="${w2}" fill="${c}"/>`;
+  }
+  function favRounded(base, line, stroke, id) {
+    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">`
+      + `<defs><clipPath id="fr${id}"><rect x="10" y="10" width="80" height="80" rx="18"/></clipPath></defs>`
+      + `<rect x="10" y="10" width="80" height="80" rx="18" fill="${base}"/>`
+      + `<g clip-path="url(#fr${id})">${favPlaid(line, 7, 4)}</g>`
+      + `<rect x="10" y="10" width="80" height="80" rx="18" fill="none" stroke="${stroke}" stroke-width="3"/></svg>`;
+  }
+  function favZig(base, line, stroke, id) {
+    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">`
+      + `<defs><clipPath id="fz${id}"><path d="${FAV_ZZ}"/></clipPath></defs>`
+      + `<path d="${FAV_ZZ}" fill="${base}"/>`
+      + `<g clip-path="url(#fz${id})">${favPlaid(line, 6, 4)}</g>`
+      + `<path d="${FAV_ZZ}" fill="none" stroke="${stroke}" stroke-width="3" stroke-linejoin="round"/></svg>`;
+  }
+  const FAVICONS = {
+    D: { label: 'Lavender · rounded (rec.)', svg: favRounded('#efe6f0', '#7a5a7d', '#5a4060', 'D') },
+    A: { label: 'Plum · pinked edge',        svg: favZig('#efe6f0', '#7a5a7d', '#5a4060', 'A') },
+    B: { label: 'Sage · rounded',            svg: favRounded('#e8eedd', '#57693f', '#57693f', 'B') },
+    C: { label: 'Lavender · pinked',         svg: favZig('#f3eef4', '#9a7d9d', '#7a5a7d', 'C') },
+  };
+  const favLink = document.getElementById('favicon');
+  const favOptions = document.getElementById('favOptions');
+  function setFavicon(key) {
+    favLink.href = 'data:image/svg+xml,' + encodeURIComponent(FAVICONS[key].svg);
+    [...favOptions.children].forEach(b => b.classList.toggle('on', b.dataset.fav === key));
+  }
+  favOptions.innerHTML = Object.entries(FAVICONS).map(([k, v]) =>
+    `<button class="fav-opt" data-fav="${k}">${v.svg}<span>Nanalu Boutique<small>${v.label}</small></span></button>`
+  ).join('');
+  favOptions.addEventListener('click', e => { const b = e.target.closest('[data-fav]'); if (b) setFavicon(b.dataset.fav); });
+  setFavicon('D');
+
+  /* ---------- page switcher ---------- */
+  const PAGES = [
+    { label: 'Home', nav: null },
+    { label: 'Catalog', nav: 'shop' },
+    { label: 'Product', nav: 'shop' },
+    { label: 'Configurator', nav: 'design' },
+    { label: 'Cart', nav: null },
+  ];
+  const swBtns = document.getElementById('swBtns');
+  PAGES.forEach((p, i) => {
+    const b = document.createElement('button');
+    b.className = 'sw-btn';
+    b.innerHTML = `<span class="num">${i + 1}</span>${p.label}`;
+    b.addEventListener('click', () => goto(i));
+    swBtns.appendChild(b);
+  });
+
+  function goto(i) {
+    document.querySelectorAll('.page').forEach((pg, j) => pg.classList.toggle('active', j === i));
+    [...swBtns.children].forEach((b, j) => b.classList.toggle('active', j === i));
+    document.querySelectorAll('.nav-links a[data-nav]').forEach(a => a.classList.toggle('on', a.dataset.nav && a.dataset.nav === PAGES[i].nav));
+    if (i === 4) renderCart();
+    window.scrollTo({ top: 0, behavior: 'instant' in window ? 'instant' : 'auto' });
+    location.hash = i + 1;
+  }
+
+  // global navigation via [data-goto]
+  document.addEventListener('click', e => {
+    const g = e.target.closest('[data-goto]');
+    if (g && !e.target.closest('[data-addcart]')) { e.preventDefault(); goto(+g.dataset.goto); }
+  });
+  document.addEventListener('keydown', e => {
+    const n = Number(e.key);
+    if (n >= 1 && n <= PAGES.length && !e.metaKey && !e.ctrlKey && document.activeElement.tagName !== 'INPUT') goto(n - 1);
+  });
+
+  renderCart();
+  const fromHash = Number(location.hash.slice(1));
+  goto(fromHash >= 1 && fromHash <= PAGES.length ? fromHash - 1 : 0);
+</script>
+</body>
+</html>
