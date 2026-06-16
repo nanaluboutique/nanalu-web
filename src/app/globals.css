@@ -85,6 +85,19 @@
     color: var(--color-heading);
   }
 
+  /* Global keyboard-focus ring — the one brand focus style for every
+     interactive element (links, inputs, buttons, …), replacing the browser
+     default. `:focus-visible` shows it for keyboard/programmatic focus, not
+     mouse clicks. Components should NOT redefine this. */
+  :focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+    /* Softens the ring on plain text links (which have no radius of their own).
+       Buttons/pills/round icons define their radius in the components/utilities
+       layers, which win here, so they keep their own shape. */
+    border-radius: 0.35rem;
+  }
+
   ::selection {
     background-color: var(--color-sage);
     color: var(--color-on-accent);
@@ -123,10 +136,7 @@
   .btn:active {
     transform: translateY(0); /* settles back down — subtle "pressed" feel */
   }
-  .btn:focus-visible {
-    outline: 2px solid var(--color-primary); /* keyboard focus only */
-    outline-offset: 2px;
-  }
+  /* keyboard focus ring is global — see @layer base :focus-visible */
   .btn:disabled {
     opacity: 0.5;
     cursor: not-allowed;
@@ -241,10 +251,6 @@
     background-color: rgb(255 255 255 / 0.6);
     transform: translateY(-1px);
   }
-  .icon-btn:focus-visible {
-    outline: 2px solid var(--color-primary);
-    outline-offset: 2px;
-  }
 
   /* Cart pill — primary fill with a sage count badge. */
   .nav-cart {
@@ -260,10 +266,6 @@
   }
   .nav-cart:hover {
     transform: translateY(-1px);
-  }
-  .nav-cart:focus-visible {
-    outline: 2px solid var(--color-primary);
-    outline-offset: 2px;
   }
   .nav-cart .count {
     background-color: var(--color-sage);

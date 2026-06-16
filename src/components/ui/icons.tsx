@@ -76,3 +76,13 @@ export function CartIcon(props: IconProps) {
     </svg>
   );
 }
+
+export function InstagramIcon(props: IconProps) {
+  return (
+    <svg width={20} height={20} {...base} {...props}>
+      <rect x="3.5" y="3.5" width="17" height="17" rx="5" />
+      <circle cx="12" cy="12" r="4" />
+      <circle cx="17.2" cy="6.8" r="1.1" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
