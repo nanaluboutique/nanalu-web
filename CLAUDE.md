@@ -49,15 +49,55 @@ _(Exact versions, configs, and rationale: **TODO after Phase 0**. Full reasoning
 
 ## Commands
 
-**TODO after Phase 0** — install, dev server, build, test, lint/format, DB migrate, seed.
+Package manager is **npm** (committed `package-lock.json`). Node **20+** (matches the Docker base image `node:20-alpine`).
+
+| Task             | Command          | Notes                                                                                        |
+| ---------------- | ---------------- | -------------------------------------------------------------------------------------------- |
+| Install deps     | `npm install`    | `npm ci` for a clean, lockfile-exact install (what CI/Docker use).                           |
+| Dev server       | `npm run dev`    | Next dev server on http://localhost:3000 (hot reload).                                       |
+| Production build | `npm run build`  | Compiles to `.next/`; `output: "standalone"` emits a self-contained server (see Dockerfile). |
+| Run built app    | `npm run start`  | Serves the production build; run `build` first.                                              |
+| Lint             | `npm run lint`   | ESLint (flat config, `eslint.config.mjs`). `npm run lint:fix` to auto-fix.                   |
+| Format           | `npm run format` | Prettier writes all files; `npm run format:check` only checks (used in CI).                  |
+
+- **Pre-commit:** Husky + lint-staged auto-run `eslint --fix` + `prettier --write` on staged files (config in `package.json`). The `prepare` script installs the Husky hooks on `npm install`.
+- **Tests:** _no test runner wired up yet._ When we add one (e.g. Vitest/Playwright), add a `test` script and document it here.
+- **Database (Prisma) migrate/seed:** _not set up yet_ — there's no database in the app today. Add `db:migrate` / `db:seed` scripts here when Prisma lands (Phase 1+).
 
 ## Project structure
 
-**TODO after Phase 0** — folder layout + where things live.
+```
+src/
+  app/                  # Next.js App Router — each folder is a route (page.tsx)
+    layout.tsx          # root layout: fonts, <Header>, <main>, <Footer>, metadata
+    page.tsx            # home (/)
+    globals.css         # Tailwind v4 entry + @theme design tokens (source of truth for colors/fonts/radii)
+    icon.svg            # favicon
+    <route>/page.tsx    # one folder per route: shop, customize, cart, favorites,
+                        #   account, faq, shipping, refunds, care-guide, contact,
+                        #   terms, privacy, impressum, story, styleguide
+  components/
+    layout/             # structural: Header, Footer, Container, PlaceholderPage
+    ui/                 # reusable primitives: Button, Card, Tag, Brand/logo, icons
+  lib/
+    cn.ts               # className joiner used across components
+public/                 # static assets served at / (svgs, etc.)
+docs/brand.md           # brand/visual spec (palette, type) — authority for design
+mockups/*.html          # static HTML mockups — the visual spec for components
+```
+
+Conventions:
+
+- **Path alias `@/*` → `src/*`** (set in `tsconfig.json`). Import as `@/components/ui/button`, not long relative paths.
+- **Server Components by default.** A file needs `"use client"` only when it uses state, effects, or browser events (e.g. `header.tsx`).
+- **Never hardcode hex** — pull colors/fonts/radii from the `@theme` tokens in `globals.css` (see "Frontend gotchas").
 
 ## Environment variables
 
-**TODO** — documented as we add them (never commit real values; keep a `.env.example`).
+- Real values live in **`.env.local`** (gitignored, **never committed**). `.env.example` is the committed template — copy it: `cp .env.example .env.local`.
+- **The app currently needs none** to run. `.env.example` lists forward-looking placeholders (Postgres/Prisma, Cloudinary, Stripe, auth) for later phases; each lands when the code that reads it does.
+- **`NEXT_PUBLIC_` prefix** = exposed to the browser (e.g. Stripe _publishable_ key). Anything secret (DB URL, Stripe _secret_ key) must **not** carry that prefix — it stays server-only.
+- When you add a new variable, add it to `.env.example` with a safe placeholder in the same change, so a fresh clone knows what to set.
 
 ## Deployment
 
