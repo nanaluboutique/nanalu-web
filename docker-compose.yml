@@ -1,0 +1,26 @@
+# Local development database — PostgreSQL in a container.
+#
+# This is a DEV CONVENIENCE only (not used in production): it lets us run
+# Postgres without installing it on the host. Start it with:
+#     docker compose up -d
+# and stop it with:
+#     docker compose down
+#
+# The credentials below are local-only throwaways (this file is committed),
+# NOT secrets. The real connection string lives in .env.local (gitignored).
+services:
+  db:
+    image: postgres:17-alpine
+    container_name: nanalu-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: nanalu
+      POSTGRES_PASSWORD: nanalu
+      POSTGRES_DB: nanalu
+    ports:
+      - "5432:5432"
+    volumes:
+      - nanalu-db-data:/var/lib/postgresql/data
+
+volumes:
+  nanalu-db-data:

@@ -62,7 +62,24 @@ Package manager is **npm** (committed `package-lock.json`). Node **20+** (matche
 
 - **Pre-commit:** Husky + lint-staged auto-run `eslint --fix` + `prettier --write` on staged files (config in `package.json`). The `prepare` script installs the Husky hooks on `npm install`.
 - **Tests:** _no test runner wired up yet._ When we add one (e.g. Vitest/Playwright), add a `test` script and document it here.
-- **Database (Prisma) migrate/seed:** _not set up yet_ — there's no database in the app today. Add `db:migrate` / `db:seed` scripts here when Prisma lands (Phase 1+).
+
+### Database (local: Docker + Prisma)
+
+Local dev DB is **PostgreSQL in a Docker container** (`docker-compose.yml`), accessed via **Prisma** (ORM). Needs Docker Desktop running.
+
+| Task              | Command               | Notes                                                                  |
+| ----------------- | --------------------- | ---------------------------------------------------------------------- |
+| Start DB          | `npm run db:up`       | Starts the Postgres container (detached).                              |
+| Stop DB           | `npm run db:down`     | Stops it; data persists in a named volume.                             |
+| Migrate (dev)     | `npm run db:migrate`  | Create + apply a migration from schema changes (`prisma migrate dev`). |
+| Studio            | `npm run db:studio`   | GUI to browse/edit data (`prisma studio`).                             |
+| Regenerate client | `npm run db:generate` | Rebuild the type-safe client into `src/generated/prisma`.              |
+| Reset (dev)       | `npm run db:reset`    | Wipe + replay all migrations. **Dev only — destroys data.**            |
+| Deploy migrations | `npm run db:deploy`   | Apply pending migrations without creating new ones (CI/prod).          |
+
+- **Source of truth:** `prisma/schema.prisma` (models); migrations live in `prisma/migrations/` (committed, replayable).
+- **CLI config:** `prisma.config.ts` (Prisma 7) points the CLI at the schema/migrations and reads `DATABASE_URL` from `.env.local` (see Environment). Old tutorials put the `url` in `schema.prisma` — Prisma 7 moved it here.
+- **Generated client:** output to `src/generated/prisma` (gitignored — regenerated, never committed).
 
 ## Project structure
 
@@ -81,6 +98,12 @@ src/
     ui/                 # reusable primitives: Button, Card, Tag, Brand/logo, icons
   lib/
     cn.ts               # className joiner used across components
+  generated/prisma/     # generated Prisma client (gitignored — not committed)
+prisma/
+  schema.prisma         # Prisma models — the DB source of truth
+  migrations/           # generated SQL migrations (committed, replayable)
+prisma.config.ts        # Prisma 7 CLI config (schema/migrations paths, DB url via .env.local)
+docker-compose.yml      # local Postgres container for dev
 public/                 # static assets served at / (svgs, etc.)
 docs/brand.md           # brand/visual spec (palette, type) — authority for design
 mockups/*.html          # static HTML mockups — the visual spec for components
@@ -95,7 +118,8 @@ Conventions:
 ## Environment variables
 
 - Real values live in **`.env.local`** (gitignored, **never committed**). `.env.example` is the committed template — copy it: `cp .env.example .env.local`.
-- **The app currently needs none** to run. `.env.example` lists forward-looking placeholders (Postgres/Prisma, Cloudinary, Stripe, auth) for later phases; each lands when the code that reads it does.
+- **`DATABASE_URL` is required now** (points at the local Docker Postgres). The rest of `.env.example` stays forward-looking placeholders (Cloudinary, Stripe, auth) until the code that reads them lands.
+- **Both Next.js and Prisma read `.env.local`:** Next loads it automatically for the app; the Prisma CLI loads it via `prisma.config.ts` (it doesn't read `.env.local` on its own). So there's one local-env file, not two.
 - **`NEXT_PUBLIC_` prefix** = exposed to the browser (e.g. Stripe _publishable_ key). Anything secret (DB URL, Stripe _secret_ key) must **not** carry that prefix — it stays server-only.
 - When you add a new variable, add it to `.env.example` with a safe placeholder in the same change, so a fresh clone knows what to set.
 
