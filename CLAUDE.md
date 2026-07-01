@@ -69,7 +69,7 @@ Local dev DB is **PostgreSQL in a Docker container** (`docker-compose.yml`), acc
 
 | Task              | Command               | Notes                                                                  |
 | ----------------- | --------------------- | ---------------------------------------------------------------------- |
-| Start DB          | `npm run db:up`       | Starts the Postgres container (detached).                              |
+| Start DB          | `npm run db:up`       | Starts Postgres (detached) and waits until it accepts connections.     |
 | Stop DB           | `npm run db:down`     | Stops it; data persists in a named volume.                             |
 | Migrate (dev)     | `npm run db:migrate`  | Create + apply a migration from schema changes (`prisma migrate dev`). |
 | Studio            | `npm run db:studio`   | GUI to browse/edit data (`prisma studio`).                             |

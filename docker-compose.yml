@@ -19,6 +19,14 @@ services:
       POSTGRES_DB: nanalu
     ports:
       - "5432:5432"
+    # Lets `docker compose up -d --wait` (our `db:up`) block until Postgres
+    # actually accepts connections — not just "container started" — so chained
+    # commands (db:up && db:migrate) don't race a cold start.
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nanalu -d nanalu"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
     volumes:
       - nanalu-db-data:/var/lib/postgresql/data
 
