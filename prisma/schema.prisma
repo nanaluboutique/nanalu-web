@@ -1,7 +1,7 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Get a free hosted Postgres database in seconds: `npx create-db`
+// Data model: see docs/data-model.md for the ERD, cardinalities, and rationale.
 
 generator client {
   provider = "prisma-client"
@@ -10,4 +10,87 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+}
+
+// ─── Catalog (#27) ──────────────────────────────────────────────────────────
+
+/// The shared product listing (e.g. "Linen Tote Bag"). Umbrella for both buying
+/// paths: it can have ready-made pieces in stock AND offer customization.
+model Product {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  name         String
+  slug         String   @unique
+  description  String
+  priceCents   Int
+  images       String[]
+  customizable Boolean  @default(false)
+  active       Boolean  @default(true) // soft-delete: false = discontinued
+
+  categories     Category[]
+  readyMadeItems ReadyMadeItem[]
+}
+
+/// Admin-managed browse buckets (Bags & totes, Pouches, ...). M:N with Product.
+model Category {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  name String
+  slug String @unique
+
+  products Product[]
+}
+
+/// A unique one-of-a-kind finished piece under a Product (qty always 1).
+model ReadyMadeItem {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  images      String[]
+  description String
+  priceCents  Int? // optional override; falls back to product.priceCents
+  available   Boolean  @default(true) // true = for sale, false = sold
+
+  @@index([productId])
+}
+
+enum MaterialKind {
+  FABRIC
+  COLOUR
+}
+
+enum MaterialUnit {
+  METRE
+  SKEIN
+  GRAM
+}
+
+/// A fabric OR a colour — the configurator's "paint". One table, discriminated
+/// by `kind`; variant-specific columns are nullable. Relations (to slots) arrive
+/// with the configurator (#28).
+model Material {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  kind   MaterialKind
+  name   String
+  unit   MaterialUnit
+  stock  Decimal      @db.Decimal(10, 2)
+  active Boolean      @default(true) // soft-delete: false = discontinued
+
+  // fabric-only (null for colours)
+  swatchImage       String?
+  swatchRealWidthCm Decimal? @db.Decimal(6, 2)
+
+  // colour-only (null for fabrics)
+  hex String?
 }
