@@ -32,6 +32,8 @@ model Product {
   categories     Category[]
   readyMadeItems ReadyMadeItem[]
   customization  CustomizationConfig? // present only when customizable = true
+  favouritedBy   User[] // implicit M:N (#29) — powers the "Most loved" sort
+  orderItems     OrderItem[] // made-to-order lines that referenced this product (#29)
 }
 
 /// Admin-managed browse buckets (Bags & totes, Pouches, ...). M:N with Product.
@@ -59,6 +61,8 @@ model ReadyMadeItem {
   description String
   priceCents  Int? // optional override; falls back to product.priceCents
   available   Boolean  @default(true) // true = for sale, false = sold
+
+  orderItems OrderItem[] // ready-made lines that referenced this piece (#29)
 
   @@index([productId])
 }
@@ -94,7 +98,8 @@ model Material {
   // colour-only (null for fabrics)
   hex String?
 
-  slots Slot[] // slots that allow this material (the configurator palette)
+  slots        Slot[] // slots that allow this material (the configurator palette)
+  reservations Reservation[] // meterage holds against this material (#29)
 }
 
 // ─── Customization (#28) ────────────────────────────────────────────────────
@@ -151,4 +156,140 @@ model Region {
   svgId String // the id attribute of the <path> in CustomizationConfig.svg
 
   @@index([slotId])
+}
+
+// ─── Commerce (#29) ─────────────────────────────────────────────────────────
+
+/// A customer account. Identity + favourites only for now — auth columns
+/// (password hash, provider ids) land in Phase 6 when we pick a vetted provider;
+/// we never hand-roll auth. Orders can exist WITHOUT a user (guest checkout), so
+/// the link lives on Order.userId (nullable), not here as a requirement.
+model User {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // NORMALISE TO LOWERCASE in app code before persisting. `@unique` and the
+  // guest-order claim (matching Order.email) are CASE-SENSITIVE at the DB level,
+  // so "A@x.com" and "a@x.com" would be two accounts / an unclaimable order.
+  // App-layer lowercasing is enforced when auth + checkout land (Phase 5/6).
+  email String  @unique
+  name  String?
+
+  orders     Order[]
+  favourites Product[] // implicit M:N — powers the "Most loved" sort
+}
+
+enum OrderStatus {
+  PENDING // RESERVED for a future checkout-initiated flow. Today the Stripe webhook
+  //         creates orders directly as PAID, so no order is ever persisted in
+  //         PENDING — it's the default only because an enum needs one.
+  PAID // webhook confirmed payment — the order is CREATED here; stock deducted
+  FULFILLED // shipped / handed over
+  CANCELLED
+  REFUNDED
+}
+
+/// One purchase. Created on payment confirmation (Stripe webhook = source of
+/// truth). Holds a snapshot of what was charged; card data never touches us —
+/// we keep only the PaymentIntent reference.
+model Order {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId String? // null = guest checkout
+  user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  email      String // receipt/contact; also the key that lets a later account
+  //          "claim" past guest orders (backfill userId where email matches,
+  //          ONLY after the email is verified — Phase 6).
+  status                OrderStatus @default(PENDING)
+  totalCents            Int // snapshot of the amount charged
+  stripePaymentIntentId String?     @unique // the only payment data we store;
+  //          @unique makes webhook processing idempotent.
+
+  // The cancel / restock gate. null = production not started → the order is still
+  // cancellable and its reserved meterage is restockable. Once set (fabric cut),
+  // meterage is physically spent: a later cancel/return does NOT restock it.
+  // Order-level for MVP; per-line production state is an additive Phase 8 upgrade.
+  productionStartedAt DateTime?
+
+  items        OrderItem[]
+  reservations Reservation[]
+
+  @@index([userId]) // "my orders" history
+  @@index([email]) // guest-order claim lookup
+}
+
+/// One line on an order. Handles BOTH buying paths via nullable FKs: a ready-made
+/// line points at readyMadeItem; a made-to-order line points at product + carries
+/// a `configuration` snapshot. FKs are SetNull so order history OUTLIVES catalog
+/// deletion; name/price are snapshotted so later catalog edits don't rewrite the past.
+model OrderItem {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  orderId String
+  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  // EXACTLY ONE of these is set: readyMadeItemId (ready-made line) XOR productId
+  // (made-to-order line). Prisma can't express that, so a CHECK constraint in the
+  // migration enforces it. A ready-made line reaches its product via readyMadeItem
+  // — we don't also set productId (no redundant, drift-prone copy).
+  readyMadeItemId String?
+  readyMadeItem   ReadyMadeItem? @relation(fields: [readyMadeItemId], references: [id], onDelete: SetNull)
+  productId       String?
+  product         Product?       @relation(fields: [productId], references: [id], onDelete: SetNull)
+
+  nameSnapshot       String // catalog name at purchase time
+  priceCentsSnapshot Int // price actually charged for this line
+  quantity           Int    @default(1)
+
+  // Made-to-order only (null for ready-made). Self-contained immutable snapshot of
+  // the configurator result — the outline SVG + per-slot material choices (ids,
+  // snapshot names, hex/swatch, meterage). Deliberately JSON, NOT FKs into live
+  // Slot/Material rows: an order must render identically forever, even if those
+  // rows are later edited or deleted. Structured material usage lives on Reservation.
+  configuration Json?
+
+  @@index([orderId])
+  @@index([readyMadeItemId])
+  @@index([productId])
+}
+
+enum ReservationStatus {
+  ACTIVE // soft hold from add-to-cart; reduces AVAILABLE meterage, not physical stock
+  CONSUMED // order paid → deducted from Material.stock. Terminal (fabric committed)
+  RELEASED // hold ended without consuming: expired pre-payment, OR cancelled before
+  //          cutting (that path adds the meterage back to Material.stock)
+}
+
+/// A temporary hold on material meterage. Made-to-order ONLY — ready-made pieces are
+/// first-come (a boolean `available`), never reserved. Reserve at add-to-cart (ACTIVE,
+/// with expiry); deduct + CONSUMED on payment; RELEASED on expiry or pre-production
+/// cancellation. Whether a paid order's holds may be released-with-restock is gated by
+/// Order.productionStartedAt — restock is NEVER automatic.
+model Reservation {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  materialId String
+  material   Material @relation(fields: [materialId], references: [id], onDelete: Restrict) // materials are soft-deleted, never hard-deleted
+
+  quantity  Decimal           @db.Decimal(10, 2) // meterage held, in the material's unit
+  expiresAt DateTime // ACTIVE past this instant = effectively released (cleanup flips it)
+  status    ReservationStatus @default(ACTIVE)
+
+  cartToken String // groups a (possibly guest) cart's holds before any order exists
+
+  orderId String? // set on payment — links the hold to the order it fulfilled
+  order   Order?  @relation(fields: [orderId], references: [id], onDelete: SetNull)
+
+  @@index([materialId])
+  @@index([cartToken])
+  @@index([expiresAt]) // the expiry-cleanup sweep
+  @@index([orderId])
 }

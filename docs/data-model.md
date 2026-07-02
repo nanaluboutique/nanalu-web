@@ -2,7 +2,7 @@
 
 The database sketch for **Phase 1**. We build it **incrementally by domain slice**:
 
-1. **Catalog** — `#27` (this slice) — the read-side data the shop renders.
+1. **Catalog** — `#27` — the read-side data the shop renders.
 2. **Customization** — `#28` — the configurator (regions, slots, meterage).
 3. **Commerce** — `#29` — orders, stock holds, accounts.
 
@@ -31,13 +31,12 @@ Cardinality shorthand: `||` = one, `<`/`>` = many. So `A ||──< B` reads "one
                                           Slot >──< Material  (allowed palette;
                                           meterage lives on the Slot itself)
 
-                          COMMERCE  (#29 — later, sketch only)
+                          COMMERCE  (#29 — built now)
    User ||──< Order ||──< OrderItem  ──> Product / ReadyMadeItem
-   Reservation  (temporary meterage hold, has expiry)  ──> Material   (made-to-order ONLY)
+   Order ||──< Reservation  ──> Material   (temporary meterage hold, has expiry;
+                                            made-to-order ONLY)
    User >──< Product   (favourites — powers the "Most loved" sort)
 ```
-
-The commerce relationships are still **sketches** — exact fields get designed in #29.
 
 ---
 
@@ -174,6 +173,134 @@ so "one fabric appears in several places" works automatically.
 
 ---
 
+## Commerce slice (#29) — detail
+
+Orders, the stock holds that protect made-to-order meterage, and customer accounts — the
+data Phases 4–6 (cart, checkout, accounts) depend on. Built now as the schema foundation;
+the _behaviour_ (reservation sweeps, webhook order creation, refund processing) lands in
+its phase — this slice just makes the entities correct.
+
+### User — a customer account
+
+Identity + favourites only. **No auth columns yet** — password hashing / provider ids
+arrive in **Phase 6** with a vetted provider (we never hand-roll auth). Orders can exist
+**without** a user (guest checkout), so the account link is a nullable `Order.userId`, not a
+requirement here.
+
+| Field                     | Type           | Notes                                                                                                                    |
+| ------------------------- | -------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `id`                      | String (cuid)  |                                                                                                                          |
+| `createdAt` / `updatedAt` | DateTime       |                                                                                                                          |
+| `email`                   | String @unique | login handle + **claims past guest orders**; **lowercase-normalised** in app (the `@unique` is case-sensitive at the DB) |
+| `name`                    | String?        |                                                                                                                          |
+| `orders`                  | Order[]        | **1:N**                                                                                                                  |
+| `favourites`              | Product[]      | **M:N** — powers the **"Most loved"** sort (implicit join)                                                               |
+
+### Order — one purchase
+
+Created **on payment confirmation** (Stripe webhook = source of truth) — the webhook writes
+the order straight to **`PAID`**. Snapshots what was charged; **no card data** — only the
+PaymentIntent reference. (`PENDING` is the enum's default but is **never persisted** today;
+it's reserved for a possible future checkout-initiated flow.)
+
+| Field                     | Type            | Notes                                                                         |
+| ------------------------- | --------------- | ----------------------------------------------------------------------------- |
+| `id`                      | String (cuid)   |                                                                               |
+| `createdAt` / `updatedAt` | DateTime        | `createdAt` also anchors the grace-period clock                               |
+| `userId`                  | String?         | **FK**, nullable — `null` = guest checkout (`onDelete: SetNull`)              |
+| `email`                   | String          | receipt/contact + guest-order claim key; **lowercase-normalised** in app      |
+| `status`                  | OrderStatus     | created as `PAID`; then `FULFILLED / CANCELLED / REFUNDED` (`PENDING` unused) |
+| `totalCents`              | Int             | snapshot of the amount charged (integer cents)                                |
+| `stripePaymentIntentId`   | String? @unique | the **only** payment data we keep; `@unique` = idempotent webhook handling    |
+| `productionStartedAt`     | DateTime?       | **the cancel/restock gate** — see decisions below                             |
+| `items`                   | OrderItem[]     | **1:N**                                                                       |
+| `reservations`            | Reservation[]   | **1:N** — the holds this order consumed                                       |
+
+### OrderItem — one line
+
+Handles **both** buying paths through nullable FKs — **exactly one** of `readyMadeItemId`
+(ready-made) / `productId` (made-to-order) is set, enforced by a `CHECK` constraint (Prisma
+can't express it, so it's hand-written in the migration). FKs are `SetNull` so **order
+history outlives catalog deletion**; name + price are **snapshotted** so later catalog edits
+never rewrite the past.
+
+| Field                | Type          | Notes                                                                                         |
+| -------------------- | ------------- | --------------------------------------------------------------------------------------------- |
+| `id`                 | String (cuid) |                                                                                               |
+| `orderId`            | String        | **FK** back to Order (`onDelete: Cascade`)                                                    |
+| `readyMadeItemId`    | String?       | **FK** — set for a ready-made line, else null (`onDelete: SetNull`); XOR `productId`          |
+| `productId`          | String?       | **FK** — set for a made-to-order line, else null (`onDelete: SetNull`); XOR `readyMadeItemId` |
+| `nameSnapshot`       | String        | catalog name at purchase time                                                                 |
+| `priceCentsSnapshot` | Int           | price actually charged for this line                                                          |
+| `quantity`           | Int           | defaults to 1                                                                                 |
+| `configuration`      | Json?         | **made-to-order only** — the immutable configurator snapshot (see decisions)                  |
+
+### Reservation — a temporary meterage hold
+
+**Made-to-order only.** Ready-made pieces are first-come (a boolean `available`), never
+reserved. Reserve at add-to-cart (`ACTIVE`, with expiry) → deduct + `CONSUMED` on payment →
+`RELEASED` on expiry or a **pre-production** cancellation (only that path restocks).
+
+| Field                     | Type              | Notes                                                                 |
+| ------------------------- | ----------------- | --------------------------------------------------------------------- |
+| `id`                      | String (cuid)     |                                                                       |
+| `createdAt` / `updatedAt` | DateTime          |                                                                       |
+| `materialId`              | String            | **FK** → Material (`onDelete: Restrict` — materials are soft-deleted) |
+| `quantity`                | Decimal(10,2)     | meterage held, in the material's `unit`                               |
+| `expiresAt`               | DateTime          | `ACTIVE` past this = effectively released; a cleanup sweep flips it   |
+| `status`                  | ReservationStatus | `ACTIVE / CONSUMED / RELEASED`                                        |
+| `cartToken`               | String            | groups a (possibly **guest**) cart's holds before any order exists    |
+| `orderId`                 | String?           | set on payment — links the hold to the order it fulfilled (`SetNull`) |
+
+### Relationships in this slice
+
+| Relationship              | Cardinality   | Why                                                                              |
+| ------------------------- | ------------- | -------------------------------------------------------------------------------- |
+| User → Order              | **1:N** (opt) | a customer has many orders; an order has 0-or-1 user (guest = null `userId`)     |
+| Order → OrderItem         | **1:N**       | one order, many lines (`onDelete: Cascade` — deleting an order clears its lines) |
+| OrderItem → Product       | **1:N** (opt) | a made-to-order line references its product; `SetNull` keeps history on delete   |
+| OrderItem → ReadyMadeItem | **1:N** (opt) | a ready-made line references its piece; `SetNull` keeps history on delete        |
+| Order → Reservation       | **1:N** (opt) | the holds an order consumed; `null` while still in a cart                        |
+| Reservation → Material    | **1:N**       | each hold is against one material; `Restrict` (materials are soft-deleted)       |
+| User ⇄ Product            | **M:N**       | favourites; implicit `_ProductToUser` join; powers "Most loved"                  |
+
+### Key design decisions (commerce)
+
+- **Order created on payment, not at cart.** The cart is just a set of `ACTIVE`
+  reservations keyed by `cartToken`; the `Order` row appears when Stripe confirms payment
+  (webhook = source of truth). So there's no "pending cart order" cluttering the table.
+- **Guest checkout, and guest orders are claimable.** `Order.email` is stored on every
+  order and `userId` is nullable. When someone later makes an account with that email, we
+  backfill `userId` on their orphan orders — **only after the email is verified** (Phase 6),
+  or anyone could claim another person's history. Costs **zero** extra schema.
+- **Made-to-order line = JSON snapshot, not live FKs.** `OrderItem.configuration` copies in
+  the outline SVG + per-slot material choices (ids, snapshot names, hex/swatch, meterage).
+  An order must re-render **identically forever**, even if those Slot/Material rows are later
+  edited or deleted — so it can't point at live rows. Structured, queryable material usage
+  lives on `Reservation` instead — at the **order** level (per-_line_ attribution waits for
+  the deferred `orderItemId`, below).
+- **Exactly one buying path per `OrderItem`** (`readyMadeItemId` XOR `productId`), enforced
+  by a hand-written `CHECK` constraint since Prisma can't express it. A ready-made line
+  reaches its product _through_ `readyMadeItem` — we don't duplicate `productId` onto it
+  (no drift-prone copy). So `Product.orderItems` holds only made-to-order lines; ready-made
+  lines live on `ReadyMadeItem.orderItems`.
+- **Restock is conditional, never automatic.** PLAN §2/§9 says "refunds/cancellations
+  restock" — that's a **simplification**. Meterage can only go back to stock if the fabric
+  was never cut. `Order.productionStartedAt` is the gate: `null` = not cut → cancellable and
+  restockable; once set, the meterage is physically spent and a later cancel/return does
+  **not** restock. A returned _finished_ piece isn't meterage at all — if resellable it's
+  relisted as a new `ReadyMadeItem` (admin flow, Phase 8).
+- **Reservations link order-level (`orderId`), not per-line.** Whole-order refunds are the
+  only case until Phase 8; per-line refunds (add `orderItemId` + a `cartLineId` cart grouping)
+  are an **additive** upgrade with nothing to backfill.
+- **Grace period / refund policy live in code + T&C, not the DB.** The database stores
+  _facts_ (`createdAt`, `productionStartedAt`, `status`); the policy knobs (grace window,
+  partial-refund formula) are config, because they change and must mirror the T&C copy.
+- **No auth columns on `User` yet.** Provider is a Phase 6 decision; adding hashed-password
+  or provider-id columns then is additive.
+
+---
+
 ## Relationships in this slice
 
 | Relationship                  | Cardinality   | Why                                                                                                                                    |
@@ -232,7 +359,7 @@ especially while the catalog is seed-data only (nothing to backfill).
 | --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------- |
 | **Filter by fabric _type_** (linen, cotton, wool — broad fibre) | a new `FabricType` tag table, **M:N** to Product (same pattern as Category). _Not_ derived from the `Material` entity — it's a coarse bucket, its own axis                                                                                                         | not in the mockup's filter list; no consumer yet                                                    |
 | **Filter by fabric _colour_** (the swatch filter in the mockup) | a **structured `Colour` tag on `ReadyMadeItem`** (each piece has its colour(s)). The product grid filters parents _through_ the nesting via `readyMadeItems: { some: { colours: { some: … } } }`. **Double duty:** same data powers the **card swatch dots** below | Phase 2 filtering feature; deferred, but the shape is now known (lives on the piece, not free text) |
-| **"Most loved" sort**                                           | a favourites count from a `User ⇄ Product` (M:N) relation                                                                                                                                                                                                          | needs accounts + favourites (commerce, #29)                                                         |
+| **"Most loved" sort**                                           | ~~a favourites count from a `User ⇄ Product` (M:N) relation~~ — the relation **now exists** (#29, `User.favourites`); only the sort query/UI remains, in Phase 2                                                                                                   | relation delivered; sort deferred to the Phase 2 filtering/sort feature                             |
 
 ### Catalog card interaction (planned, front-end only)
 
