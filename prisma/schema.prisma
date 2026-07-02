@@ -31,6 +31,7 @@ model Product {
 
   categories     Category[]
   readyMadeItems ReadyMadeItem[]
+  customization  CustomizationConfig? // present only when customizable = true
 }
 
 /// Admin-managed browse buckets (Bags & totes, Pouches, ...). M:N with Product.
@@ -74,8 +75,7 @@ enum MaterialUnit {
 }
 
 /// A fabric OR a colour — the configurator's "paint". One table, discriminated
-/// by `kind`; variant-specific columns are nullable. Relations (to slots) arrive
-/// with the configurator (#28).
+/// by `kind`; variant-specific columns are nullable.
 model Material {
   id        String   @id @default(cuid())
   createdAt DateTime @default(now())
@@ -93,4 +93,62 @@ model Material {
 
   // colour-only (null for fabrics)
   hex String?
+
+  slots Slot[] // slots that allow this material (the configurator palette)
+}
+
+// ─── Customization (#28) ────────────────────────────────────────────────────
+
+/// Per-product configurator setup: the SVG outline and its slots. Exists only
+/// for customizable products — 1:1 with Product (this is the optional side).
+model CustomizationConfig {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  productId String  @unique
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  svg String // the outline markup; its <path> ids are what Regions reference
+
+  slots Slot[]
+}
+
+/// A fillable area of the product (e.g. "Body", "Handles"). Painting a slot fills
+/// every Region mapped to it, and consumes `quantity` of the chosen material.
+model Slot {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  configId String
+  config   CustomizationConfig @relation(fields: [configId], references: [id], onDelete: Cascade)
+
+  name     String
+  quantity Decimal      @db.Decimal(10, 2) // consumed per fill, measured in `unit`
+  // INVARIANT: every material in `materials` must share this `unit` — the whole
+  // "meterage on the slot" model assumes a homogeneous palette. The DB can't
+  // enforce a cross-row rule, so admin palette editing (#7) and the reservation
+  // math (#29) must validate it; otherwise stock gets deducted in the wrong unit.
+  unit MaterialUnit // METRE / SKEIN / GRAM — matches the palette's materials
+
+  regions   Region[]
+  materials Material[] // allowed palette (implicit M:N, like Category⇄Product)
+
+  @@index([configId])
+}
+
+/// One fillable SVG path, mapped to a Slot. Filling the slot fills all its
+/// regions — so "one fabric appears in several places" works automatically.
+model Region {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  slotId String
+  slot   Slot   @relation(fields: [slotId], references: [id], onDelete: Cascade)
+
+  svgId String // the id attribute of the <path> in CustomizationConfig.svg
+
+  @@index([slotId])
 }
