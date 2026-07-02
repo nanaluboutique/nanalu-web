@@ -26,9 +26,10 @@ Cardinality shorthand: `||` = one, `<`/`>` = many. So `A ||──< B` reads "one
                      (fabric OR   arrive with the configurator (#28)
                       colour)
 
-                          CUSTOMIZATION  (#28 — later, sketch only)
+                          CUSTOMIZATION  (#28 — built now)
    Product ||──o| CustomizationConfig ||──< Slot ||──< Region
-                                          Slot >──< Material  (allowed palette + meterage)
+                                          Slot >──< Material  (allowed palette;
+                                          meterage lives on the Slot itself)
 
                           COMMERCE  (#29 — later, sketch only)
    User ||──< Order ||──< OrderItem  ──> Product / ReadyMadeItem
@@ -36,7 +37,7 @@ Cardinality shorthand: `||` = one, `<`/`>` = many. So `A ||──< B` reads "one
    User >──< Product   (favourites — powers the "Most loved" sort)
 ```
 
-The later-phase relationships are **sketches** — exact fields get designed in #28/#29.
+The commerce relationships are still **sketches** — exact fields get designed in #29.
 
 ---
 
@@ -115,18 +116,75 @@ columns are nullable.
 | `swatchRealWidthCm`       | Decimal?(6,2) | **fabric-only** — real-world width the swatch spans (calibration output) |
 | `hex`                     | String?       | **colour-only** — e.g. `#C48B9F`                                         |
 
-Relationships (to slots / products) belong to the configurator (#28), so none yet. A
-repeat-tile marker for patterned fabrics is deferred to the Calibration Tool.
+A repeat-tile marker for patterned fabrics is deferred to the Calibration Tool. The
+configurator relations below (`Material ⇄ Slot`) landed with #28.
+
+---
+
+## Customization slice (#28) — detail
+
+How a customizable product is divided into fillable areas, so the Phase 3 configurator
+can let buyers paint fabrics into place and we can compute what each choice consumes.
+
+### CustomizationConfig — the per-product setup
+
+One row per customizable product (`1:1`, optional side — a non-customizable product has
+none). Holds the SVG outline; its slots hang off it.
+
+| Field       | Type              | Notes                                                       |
+| ----------- | ----------------- | ----------------------------------------------------------- |
+| `id`        | String (cuid)     |                                                             |
+| `productId` | String @unique    | **FK + unique** — enforces the 1:1 with Product             |
+| `product`   | Product @relation | `onDelete: Cascade` — delete the product, the config goes   |
+| `svg`       | String            | the outline markup; its `<path>` ids are what Regions match |
+| `slots`     | Slot[]            | **1:N** — the fillable areas                                |
+
+### Slot — a fillable area
+
+A named area of the product ("Body", "Handles"). Painting it fills **all** its regions and
+consumes `quantity` of the chosen material.
+
+| Field       | Type          | Notes                                                           |
+| ----------- | ------------- | --------------------------------------------------------------- |
+| `id`        | String (cuid) |                                                                 |
+| `configId`  | String        | **FK** back to CustomizationConfig (`onDelete: Cascade`)        |
+| `name`      | String        | admin label ("Body", "Handles")                                 |
+| `quantity`  | Decimal(10,2) | consumed per fill, in `unit` — the number #29 reserves/deducts  |
+| `unit`      | MaterialUnit  | `METRE / SKEIN / GRAM` — matches the palette's materials        |
+| `regions`   | Region[]      | **1:N** — the SVG paths this slot fills                         |
+| `materials` | Material[]    | **M:N** — the allowed palette (implicit `_MaterialToSlot` join) |
+
+**Meterage lives on the Slot, not the palette.** The amount is a property of the pattern
+piece ("the body panel needs ~0.5 m"), the same whichever allowed material you pick — like a
+sewing pattern's fabric-requirements line. A slot's palette is homogeneous in unit (a fabric
+area takes fabrics; a yarn area takes yarn), so one `quantity` + `unit` on the slot is exact
+without a number per (slot × material). If a slot ever needs per-material amounts, moving
+`quantity` onto the join is an additive migration (cheap while it's all seed data).
+
+### Region — one fillable SVG path
+
+A single paintable path, mapped to a Slot. Filling the slot fills every region under it —
+so "one fabric appears in several places" works automatically.
+
+| Field    | Type          | Notes                                              |
+| -------- | ------------- | -------------------------------------------------- |
+| `id`     | String (cuid) |                                                    |
+| `slotId` | String        | **FK** back to Slot (`onDelete: Cascade`)          |
+| `svgId`  | String        | the `id` attribute of the `<path>` in `config.svg` |
 
 ---
 
 ## Relationships in this slice
 
-| Relationship             | Cardinality | Why                                                                                                                                    |
-| ------------------------ | ----------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| Category ⇄ Product       | **M:N**     | a product can sit in several categories (a knitted bag = Bags _and_ Knitwear); Prisma auto-creates the `_CategoryToProduct` join table |
-| Product → ReadyMadeItem  | **1:N**     | one listing has many one-off pieces; each piece belongs to one product (foreign key `productId` on the item)                           |
-| ReadyMadeItem → Material | **none**    | intentionally not linked — material info is display **text** (see decisions)                                                           |
+| Relationship                  | Cardinality   | Why                                                                                                                                    |
+| ----------------------------- | ------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| Category ⇄ Product            | **M:N**       | a product can sit in several categories (a knitted bag = Bags _and_ Knitwear); Prisma auto-creates the `_CategoryToProduct` join table |
+| Product → ReadyMadeItem       | **1:N**       | one listing has many one-off pieces; each piece belongs to one product (foreign key `productId` on the item)                           |
+| ReadyMadeItem → Material      | **none**      | intentionally not linked — material info is display **text** (see decisions)                                                           |
+| Product ⇄ CustomizationConfig | **1:1** (opt) | a customizable product has one config; `productId @unique` on the config enforces it (`#28`)                                           |
+| CustomizationConfig → Slot    | **1:N**       | one config, many fillable areas (`#28`)                                                                                                |
+| Slot → Region                 | **1:N**       | one slot, many SVG paths; filling the slot fills all of them (`#28`)                                                                   |
+| Slot ⇄ Material               | **M:N**       | a slot's allowed palette; implicit `_MaterialToSlot` join (`#28`)                                                                      |
 
 ---
 
