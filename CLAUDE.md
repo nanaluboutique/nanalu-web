@@ -67,15 +67,16 @@ Package manager is **npm** (committed `package-lock.json`). Node **20+** (matche
 
 Local dev DB is **PostgreSQL in a Docker container** (`docker-compose.yml`), accessed via **Prisma** (ORM). Needs Docker Desktop running.
 
-| Task              | Command               | Notes                                                                  |
-| ----------------- | --------------------- | ---------------------------------------------------------------------- |
-| Start DB          | `npm run db:up`       | Starts Postgres (detached) and waits until it accepts connections.     |
-| Stop DB           | `npm run db:down`     | Stops it; data persists in a named volume.                             |
-| Migrate (dev)     | `npm run db:migrate`  | Create + apply a migration from schema changes (`prisma migrate dev`). |
-| Studio            | `npm run db:studio`   | GUI to browse/edit data (`prisma studio`).                             |
-| Regenerate client | `npm run db:generate` | Rebuild the type-safe client into `src/generated/prisma`.              |
-| Reset (dev)       | `npm run db:reset`    | Wipe + replay all migrations. **Dev only — destroys data.**            |
-| Deploy migrations | `npm run db:deploy`   | Apply pending migrations without creating new ones (CI/prod).          |
+| Task              | Command               | Notes                                                                                   |
+| ----------------- | --------------------- | --------------------------------------------------------------------------------------- |
+| Start DB          | `npm run db:up`       | Starts Postgres (detached) and waits until it accepts connections.                      |
+| Stop DB           | `npm run db:down`     | Stops it; data persists in a named volume.                                              |
+| Migrate (dev)     | `npm run db:migrate`  | Create + apply a migration from schema changes (`prisma migrate dev`).                  |
+| Seed              | `npm run db:seed`     | Wipe + re-insert realistic dev data (`prisma db seed` → `prisma/seed.ts`). Re-runnable. |
+| Studio            | `npm run db:studio`   | GUI to browse/edit data (`prisma studio`).                                              |
+| Regenerate client | `npm run db:generate` | Rebuild the type-safe client into `src/generated/prisma`.                               |
+| Reset (dev)       | `npm run db:reset`    | Wipe + replay all migrations. **Dev only — destroys data.**                             |
+| Deploy migrations | `npm run db:deploy`   | Apply pending migrations without creating new ones (CI/prod).                           |
 
 - **Source of truth:** `prisma/schema.prisma` (models); migrations live in `prisma/migrations/` (committed, replayable).
 - **CLI config:** `prisma.config.ts` (Prisma 7) points the CLI at the schema/migrations and reads `DATABASE_URL` from `.env.local` (see Environment). Old tutorials put the `url` in `schema.prisma` — Prisma 7 moved it here.
@@ -102,6 +103,7 @@ src/
 prisma/
   schema.prisma         # Prisma models — the DB source of truth
   migrations/           # generated SQL migrations (committed, replayable)
+  seed.ts               # dev seed data (wipe + insert); run via `npm run db:seed`
 prisma.config.ts        # Prisma 7 CLI config (schema/migrations paths, DB url via .env.local)
 docker-compose.yml      # local Postgres container for dev
 public/                 # static assets served at / (svgs, etc.)

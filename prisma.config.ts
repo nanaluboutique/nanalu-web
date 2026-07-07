@@ -11,6 +11,11 @@ export default defineConfig({
   schema: "prisma/schema.prisma",
   migrations: {
     path: "prisma/migrations",
+    // `prisma db seed` (and `migrate reset`, which auto-seeds) runs this command.
+    // Prisma 7 moved seed config here from package.json's old `"prisma"` block.
+    // tsx runs the TS seed directly — portable to the Node 20 Docker/CI base,
+    // which (unlike our Node 22 dev machines) can't strip TS types natively.
+    seed: "tsx prisma/seed.ts",
   },
   datasource: {
     url: process.env["DATABASE_URL"],
