@@ -49,7 +49,7 @@ _(Exact versions, configs, and rationale: **TODO after Phase 0**. Full reasoning
 
 ## Commands
 
-Package manager is **npm** (committed `package-lock.json`). Node **20+** (matches the Docker base image `node:20-alpine`).
+Package manager is **npm** (committed `package-lock.json`). Node **24** (matches the Docker base image `node:24-alpine`, CI, and `.nvmrc`).
 
 | Task             | Command          | Notes                                                                                        |
 | ---------------- | ---------------- | -------------------------------------------------------------------------------------------- |

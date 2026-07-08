@@ -2,7 +2,7 @@
 
 # ---------- Stage 1: builder ----------
 # Heavy stage: has all the tooling needed to compile the app.
-FROM node:20-alpine AS builder
+FROM node:24-alpine AS builder
 # Some Node native deps expect this compatibility lib on Alpine Linux.
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
@@ -21,7 +21,7 @@ RUN npm run build
 # ---------- Stage 2: runner ----------
 # Tiny runtime stage: only what's needed to RUN the app — no build tools,
 # no dev dependencies.
-FROM node:20-alpine AS runner
+FROM node:24-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
