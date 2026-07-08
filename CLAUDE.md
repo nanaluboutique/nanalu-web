@@ -109,6 +109,7 @@ prisma.config.ts        # Prisma 7 CLI config (schema/migrations paths, DB url v
 docker-compose.yml      # local Postgres container for dev
 public/                 # static assets served at / (svgs, etc.)
 docs/brand.md           # brand/visual spec (palette, type) — authority for design
+docs/data-model.md      # ERD + rationale + decided/deferred data & catalog behaviour — authority for schema/browse decisions
 mockups/*.html          # static HTML mockups — the visual spec for components
 ```
 
@@ -135,3 +136,4 @@ Conventions:
 
 - **Don't force `-webkit-font-smoothing: antialiased`** (the `antialiased` class `create-next-app` puts on `<html>`, or the equivalent CSS). It's a **macOS-only** override that switches text to grayscale smoothing, rendering the same font weight **thinner** than the OS default — making the app look lighter than our mockups (which were authored without it). We render at the platform default instead. Only consider re-adding it locally for **light-text-on-dark** UI, where the default can look too heavy. (Removed in #9.)
 - **Mockups are the spec, not a starting point.** `docs/brand.md` + `mockups/*.html` hold exact values (padding, line-height, transitions, hex). When porting a component, copy the mockup CSS verbatim — don't "improve" it. The base UI primitives live in `src/components/ui` and pull from `@theme` tokens in `globals.css`; never hardcode hex.
+- **Where design decisions live — read before scoping.** Two authorities, and they don't overlap: **`mockups/*.html` + `docs/brand.md`** own the _visual_ spec (layout, spacing, colour). **`docs/data-model.md`** owns the _data shape + browse/catalog behaviour_ (what a card represents, what's grouped, what's deferred) — and it deliberately diverges from the mockup in places. On any structural/data/browse question, **`docs/data-model.md` wins over the mockup.** Read it before scoping catalog, product, or schema work; don't re-open questions it has already settled. (e.g. the catalog shows one card per in-stock `ReadyMadeItem`, not one per `Product` — decided there, not in the mockup.)
