@@ -13,8 +13,9 @@ export default defineConfig({
     path: "prisma/migrations",
     // `prisma db seed` (and `migrate reset`, which auto-seeds) runs this command.
     // Prisma 7 moved seed config here from package.json's old `"prisma"` block.
-    // tsx runs the TS seed directly — portable to the Node 20 Docker/CI base,
-    // which (unlike our Node 22 dev machines) can't strip TS types natively.
+    // tsx runs the TS seed directly. Node 24 could strip the types itself, but
+    // seed.ts imports via our `@/` path alias — and Node ignores tsconfig
+    // `paths`, so plain `node` can't resolve it. tsx reads the tsconfig and does.
     seed: "tsx prisma/seed.ts",
   },
   datasource: {
