@@ -99,6 +99,7 @@ src/
     ui/                 # reusable primitives: Button, Card, Tag, Brand/logo, icons
   lib/
     cn.ts               # className joiner used across components
+    image.ts            # asset-key → image URL helper (#31); the swappable-storage seam
   generated/prisma/     # generated Prisma client (gitignored — not committed)
 prisma/
   schema.prisma         # Prisma models — the DB source of truth
@@ -116,6 +117,7 @@ Conventions:
 - **Path alias `@/*` → `src/*`** (set in `tsconfig.json`). Import as `@/components/ui/button`, not long relative paths.
 - **Server Components by default.** A file needs `"use client"` only when it uses state, effects, or browser events (e.g. `header.tsx`).
 - **Never hardcode hex** — pull colors/fonts/radii from the `@theme` tokens in `globals.css` (see "Frontend gotchas").
+- **Images: store keys, render through `imageUrl()`.** The DB holds an asset **key** (e.g. `products/linen-tote/main`), never a full URL. Build every image URL via `imageUrl(key, opts?)` from `@/lib/image` — the single seam that keeps storage swappable (Cloudinary now, S3-compatible later; PLAN §4). Never hardcode `res.cloudinary.com` at a call site. Needs `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME` (public — it's in every delivered URL). The `next/image` wrapper + `remotePatterns` wiring lands in Phase 2, when the catalog renders real assets.
 
 ## Environment variables
 

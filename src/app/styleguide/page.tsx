@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardBody } from "@/components/ui/card";
 import { Brand, FaviconMark, Logo, Wordmark } from "@/components/ui/logo";
 import { Tag } from "@/components/ui/tag";
+import { imageUrl } from "@/lib/image";
 
 const SWATCHES: { name: string; className: string; hex: string; dark?: boolean }[] = [
   { name: "lavender", className: "bg-lavender", hex: "#B39FB5" },
@@ -31,6 +32,10 @@ const PRODUCTS = [
   { name: "Dotted zip pouch", sub: "Pouches", price: "€24", custom: false, ph: "bg-primary-tint" },
   { name: "Striped beanie", sub: "Knitwear", price: "€35", custom: false, ph: "bg-cream-fabric" },
 ];
+
+// Real asset keys from the seed (#30). The image helper (#31) turns each key into
+// a Cloudinary delivery URL — the DB never stores the URL, only the key.
+const IMAGE_KEYS = ["products/linen-tote/main", "materials/linen-natural"];
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -186,6 +191,32 @@ export default function Styleguide() {
                 </div>
               </CardBody>
             </Card>
+          ))}
+        </div>
+      </Section>
+
+      {/* Images — the #31 asset-key → URL seam (src/lib/image.ts) */}
+      <Section title="Images">
+        <p className="text-ink-soft mb-4 max-w-prose text-sm">
+          The DB stores an asset <strong>key</strong> (never a URL);{" "}
+          <code className="bg-sage-tint rounded px-1">imageUrl(key, opts)</code> builds the
+          Cloudinary delivery URL. Swapping providers later means editing one file. URLs are
+          well-formed but won&apos;t load a real image until the Cloudinary account + assets exist.
+        </p>
+        <div className="border-line bg-card rounded-card flex flex-col gap-5 border p-6">
+          {IMAGE_KEYS.map((key) => (
+            <div key={key} className="flex flex-col gap-1.5">
+              <div className="text-ink-soft text-xs font-semibold">key</div>
+              <code className="bg-primary-tint w-fit rounded px-1.5 py-0.5 text-sm">{key}</code>
+              <div className="text-ink-soft mt-1.5 text-xs font-semibold">imageUrl(key)</div>
+              <code className="text-ink-soft block overflow-x-auto text-xs">{imageUrl(key)}</code>
+              <div className="text-ink-soft mt-1.5 text-xs font-semibold">
+                imageUrl(key, {"{ width: 300, crop: 'fill' }"})
+              </div>
+              <code className="text-ink-soft block overflow-x-auto text-xs">
+                {imageUrl(key, { width: 300, crop: "fill" })}
+              </code>
+            </div>
           ))}
         </div>
       </Section>
