@@ -27,7 +27,12 @@ export type ImageTransform = {
 // image URL — so it carries the NEXT_PUBLIC_ prefix and is safe in the browser
 // (URL-building runs client-side too). The secret API key/secret are only for
 // UPLOADS (admin, Phase 8), never for delivery, so they stay server-only + unused here.
-const CLOUD_NAME = process.env["NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME"] ?? "";
+//
+// Must be DOT notation: Next inlines `process.env.NEXT_PUBLIC_*` into the browser
+// bundle by textually matching that exact form. The bracket form
+// (process.env["NEXT_PUBLIC_..."]) is not recognized by Turbopack (our default
+// compiler in Next 16), so it would compile to undefined client-side → broken URLs.
+const CLOUD_NAME = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME ?? "";
 
 /**
  * The single function every render path calls: asset key → delivery URL.
@@ -35,6 +40,13 @@ const CLOUD_NAME = process.env["NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME"] ?? "";
  */
 export function imageUrl(key: string, opts: ImageTransform = {}): string {
   if (!key) return "";
+  if (!CLOUD_NAME) {
+    // Fail loud, not silent: with no cloud name the URL is malformed
+    // (res.cloudinary.com//image/...) and images die with no obvious cause.
+    console.warn(
+      "imageUrl: NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME is not set — image URLs will be broken.",
+    );
+  }
   return `https://res.cloudinary.com/${CLOUD_NAME}/image/upload/${cloudinaryTransforms(opts)}/${key}`;
 }
 
