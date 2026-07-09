@@ -130,7 +130,35 @@ Conventions:
 
 ## Deployment
 
-**TODO (Phase 11)** — depends on the deferred hosting decision; keep the build deployment-agnostic (Dockerizable, portable Postgres + S3-compatible storage) until then.
+**Hosting: Railway (current — not final).** Chosen over Vercel to keep the portable Docker path — Railway builds and runs our `Dockerfile` (the same image CI smoke-tests), so what's tested is what ships _and_ we stay free to move later (e.g. AWS / self-host). The final production host is revisited at launch (PLAN §Phase 11); the Docker/portable build is what keeps that option open. Deployed ahead of the original Phase 11 timeline so the app is reachable during development. Live at **https://nanaluboutique.com**.
+
+### How it's wired
+
+- **Build & deploy:** Railway auto-detects the `Dockerfile` and deploys the standalone image. Every push to `main` **auto-deploys** — continuous deployment layered on the CI we already had.
+- **Port:** Railway injects its own `PORT` at runtime (currently `8080`); our `server.js` reads `process.env.PORT`, so it adapts on its own. The Dockerfile's `ENV PORT=3000` / `EXPOSE 3000` are only **local defaults** — Railway overrides them, so `EXPOSE 3000` is cosmetic there. Never hardcode a port in server code; always read `process.env.PORT`.
+- **Database:** a Railway **Postgres** service in the same project. The app reads it via a **reference variable** — `DATABASE_URL = ${{Postgres.DATABASE_URL}}` — which resolves to the **private** hostname (`postgres.railway.internal`): fast, and no egress fees. Don't paste a raw connection string into the app's `DATABASE_URL`; use the reference.
+- **Custom domain (Porkbun):** the root `nanaluboutique.com` points at Railway with an **ALIAS** record — _not_ a CNAME (the bare apex can't hold a CNAME; ALIAS is the apex-safe equivalent Porkbun provides) — plus a `_railway-verify` **TXT** record for ownership + SSL issuance. The free `*.up.railway.app` URL stays as a dev fallback / diagnostic.
+
+### Running migrations & seed against production
+
+Migrations are **not** auto-applied on deploy yet (the container just runs `node server.js`). Apply them manually from your machine, pointed at Postgres's **public** URL — the private `.railway.internal` host only resolves _inside_ Railway:
+
+1. Copy **`DATABASE_PUBLIC_URL`** from the Postgres service → **Variables** (its host ends in `.proxy.rlwy.net`).
+2. Pass it inline — `dotenv` won't override an already-set variable, so this cleanly beats the local value in `.env.local`:
+   ```bash
+   DATABASE_URL="postgresql://…proxy.rlwy.net:PORT/railway" npm run db:deploy   # migrate deploy (idempotent)
+   DATABASE_URL="postgresql://…proxy.rlwy.net:PORT/railway" npm run db:seed      # re-runnable: WIPES + reseeds
+   ```
+
+One-time admin action; the public endpoint's egress is negligible for a migration/seed, and the running app never touches the public URL.
+
+> **Phase 2 TODO — automate migrations on deploy.** Once pages actually read the DB, manual migration becomes a real "schema drifts behind the code" risk. Wire `prisma migrate deploy` into the deploy as a release/pre-deploy step. Needs a Dockerfile tweak — the runtime image currently ships neither the Prisma CLI nor `prisma/migrations`. **Never** automate the seed; it wipes tables.
+
+### Gotchas
+
+- **`NEXT_PUBLIC_*` bake at _build_ time.** Vars like `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME` are inlined into the JS during `next build`, not read at runtime — so on Railway they must be set as **build** variables, not only runtime ones, or the bundle carries a stale/empty value. (Harmless until Phase 2 renders a real image.)
+- **Billing — don't let the trial lapse.** We're on Railway's one-time **$5 free trial**. Move to the **Hobby plan (~$5/mo)** before it runs out, or the app goes offline — which defeats the point of it being reachable.
+- **Two URLs → duplicate content at launch.** The `*.up.railway.app` fallback serves the same site as the custom domain, which splits search ranking. At launch, remove it or **301-redirect** it to `nanaluboutique.com`. Tracked in the **Phase 10 SEO pass**.
 
 ## Frontend gotchas / lessons
 
