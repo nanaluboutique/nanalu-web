@@ -93,6 +93,7 @@ The site is a **custom build** (the configurator + meterage-based inventory can'
 - Product page: image **carousel**, product info, **in-stock iterations** as thumbnails → **quick-view modal** (more photos + that piece's fabric info), **Customize** button or "not customizable" note.
 - Footer scaffold with (placeholder) legal/info links.
 - Built against seeded data (login/favorites/cart **stubbed** for now).
+- **Automate DB migrations on deploy** — now that pages read the DB, apply `prisma migrate deploy` automatically when a deploy lands, so prod schema never drifts behind the code (see CLAUDE.md → Deployment).
 - **Outcome:** customers can browse the shop.
 
 ### Phase 3 — The customization configurator (centerpiece) 🧶
@@ -149,7 +150,7 @@ The site is a **custom build** (the configurator + meterage-based inventory can'
 
 ### Phase 11 — Launch
 
-- Finalize **hosting decision** with DevOps (AWS / self-host / managed); production env + secrets; backups; monitoring; go-live.
+- **Hosting: currently on Railway** (deployed early during development; see CLAUDE.md → Deployment) — **not the final call.** Revisit the production host here (Railway vs AWS / self-host / managed); the portable Docker build keeps that door open. Launch work regardless: move off the free trial to a paid plan, production env + secrets audit, backups, monitoring, remove/301-redirect the `*.up.railway.app` fallback (Phase 10 SEO), final go-live checks.
 - **Outcome:** Nanalu Boutique is live. 🎉
 
 ### Phase 12 — Native app _(future, separate repo)_
