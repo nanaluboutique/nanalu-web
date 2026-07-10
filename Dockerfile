@@ -26,11 +26,16 @@ RUN npm run build
 # node_modules holding just those two packages — npm resolves their full
 # transitive closure for us — to copy into the runner below.
 # Alpine base = the engine binaries match the runner's platform (linux-musl).
-# Keep these versions in sync with package.json (`prisma`, `dotenv`).
+# Versions are read from the app's lockfile (copied as app-lock.json, used purely
+# as a data file for the lookup) so the migration CLI can never drift from the
+# app's prisma / @prisma/client — no second place to keep in sync.
 FROM node:24-alpine AS migrate-deps
 WORKDIR /mig
+COPY package-lock.json ./app-lock.json
 RUN npm init -y >/dev/null \
- && npm install --omit=dev prisma@7.8.0 dotenv@17.4.2
+ && npm install --omit=dev \
+      "prisma@$(node -p 'require("./app-lock.json").packages["node_modules/prisma"].version')" \
+      "dotenv@$(node -p 'require("./app-lock.json").packages["node_modules/dotenv"].version')"
 
 # ---------- Stage 3: runner ----------
 # Tiny runtime stage: only what's needed to RUN the app — no build tools,
