@@ -137,22 +137,22 @@ Conventions:
 - **Build & deploy:** Railway auto-detects the `Dockerfile` and deploys the standalone image. Every push to `main` **auto-deploys** — continuous deployment layered on the CI we already had.
 - **Port:** Railway injects its own `PORT` at runtime (currently `8080`); our `server.js` reads `process.env.PORT`, so it adapts on its own. The Dockerfile's `ENV PORT=3000` / `EXPOSE 3000` are only **local defaults** — Railway overrides them, so `EXPOSE 3000` is cosmetic there. Never hardcode a port in server code; always read `process.env.PORT`.
 - **Database:** a Railway **Postgres** service in the same project. The app reads it via a **reference variable** — `DATABASE_URL = ${{Postgres.DATABASE_URL}}` — which resolves to the **private** hostname (`postgres.railway.internal`): fast, and no egress fees. Don't paste a raw connection string into the app's `DATABASE_URL`; use the reference.
+- **Migrations:** a `railway.json` **pre-deploy command** (`npx prisma migrate deploy`) applies pending migrations before each new version serves — see "Running migrations & seed" below.
 - **Custom domain (Porkbun):** the root `nanaluboutique.com` points at Railway with an **ALIAS** record — _not_ a CNAME (the bare apex can't hold a CNAME; ALIAS is the apex-safe equivalent Porkbun provides) — plus a `_railway-verify` **TXT** record for ownership + SSL issuance. The free `*.up.railway.app` URL stays as a dev fallback / diagnostic.
 
 ### Running migrations & seed against production
 
-Migrations are **not** auto-applied on deploy yet (the container just runs `node server.js`). Apply them manually from your machine, pointed at Postgres's **public** URL — the private `.railway.internal` host only resolves _inside_ Railway:
+**Migrations auto-apply on every deploy.** `railway.json` sets a **pre-deploy command** — `npx prisma migrate deploy` — that Railway runs in a one-off instance of the new image _before_ it takes traffic, using the **private** `DATABASE_URL` reference (internal network, no egress). If it fails, the deploy halts, so an un-migrated schema never serves new code. The runtime image carries what this needs — the Prisma CLI + `dotenv` + `prisma/` — copied in via the Dockerfile's `migrate-deps` stage (which adds the ~200 MB Prisma engine toolchain: the cost of migrating in-image). `migrate deploy` is idempotent, so deploys with no new migration just no-op. (#49)
+
+**Seeding stays manual — never automate it; it WIPES tables.** Run it from your machine, pointed at Postgres's **public** URL — the private `.railway.internal` host only resolves _inside_ Railway:
 
 1. Copy **`DATABASE_PUBLIC_URL`** from the Postgres service → **Variables** (its host ends in `.proxy.rlwy.net`).
 2. Pass it inline — `dotenv` won't override an already-set variable, so this cleanly beats the local value in `.env.local`:
    ```bash
-   DATABASE_URL="postgresql://…proxy.rlwy.net:PORT/railway" npm run db:deploy   # migrate deploy (idempotent)
-   DATABASE_URL="postgresql://…proxy.rlwy.net:PORT/railway" npm run db:seed      # re-runnable: WIPES + reseeds
+   DATABASE_URL="postgresql://…proxy.rlwy.net:PORT/railway" npm run db:seed   # re-runnable: WIPES + reseeds
    ```
 
-One-time admin action; the public endpoint's egress is negligible for a migration/seed, and the running app never touches the public URL.
-
-> **Phase 2 TODO — automate migrations on deploy.** Once pages actually read the DB, manual migration becomes a real "schema drifts behind the code" risk. Wire `prisma migrate deploy` into the deploy as a release/pre-deploy step. Needs a Dockerfile tweak — the runtime image currently ships neither the Prisma CLI nor `prisma/migrations`. **Never** automate the seed; it wipes tables.
+The public endpoint's egress is billed but negligible for a one-off seed; the auto-migration and the running app both use the free private URL. You can still run `npm run db:deploy` this same manual way if you ever need to migrate out-of-band.
 
 ### Gotchas
 
