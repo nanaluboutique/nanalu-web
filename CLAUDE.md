@@ -100,6 +100,8 @@ src/
   lib/
     cn.ts               # className joiner used across components
     image.ts            # asset-key → image URL helper (#31); the swappable-storage seam
+    db.ts               # getPrisma() — the app's ONE Prisma client + connection pool (#41)
+    catalog.ts          # catalog reads (list pieces, get product by slug) + the price rule (#41)
   generated/prisma/     # generated Prisma client (gitignored — not committed)
 prisma/
   schema.prisma         # Prisma models — the DB source of truth
@@ -119,6 +121,15 @@ Conventions:
 - **Server Components by default.** A file needs `"use client"` only when it uses state, effects, or browser events (e.g. `header.tsx`).
 - **Never hardcode hex** — pull colors/fonts/radii from the `@theme` tokens in `globals.css` (see "Frontend gotchas").
 - **Images: store keys, render through `imageUrl()`.** The DB holds an asset **key** (e.g. `products/linen-tote/main`), never a full URL. Build every image URL via `imageUrl(key, opts?)` from `@/lib/image` — the single seam that keeps storage swappable (Cloudinary now, S3-compatible later; PLAN §4). Never hardcode `res.cloudinary.com` at a call site. Needs `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME` (public — it's in every delivered URL). The `next/image` wrapper + `remotePatterns` wiring lands in Phase 2, when the catalog renders real assets.
+
+## Data access (#41)
+
+- **One Prisma client, always via `getPrisma()`** from `@/lib/db`. **Never `new PrismaClient()` at a call site** — each one opens its own connection pool, and Postgres caps connections (~100) then refuses with _"too many clients already"_. `prisma/seed.ts` is the sole exception: it's a standalone script, not part of the running app. In dev, the client is stashed on `globalThis` so hot reload reuses it instead of leaking a pool per file save.
+- **`getPrisma()` is lazy — a function, not an exported `prisma` const — and that's load-bearing.** `next build` imports every page module to collect its data, but a build never _queries_ the database, and neither the Dockerfile's builder stage nor CI sets `DATABASE_URL`. Creating (or validating) the client at import time therefore fails the build outright with `Failed to collect page data for /shop`. Keep the connection out of module scope so builds stay database-free — that portability is the point of the Docker path.
+- **Queries live in `@/lib/catalog`, never in components.** Pages import `listAvailablePieces()` / `getProductBySlug()`; they don't touch `getPrisma()`. That way "what counts as a sellable piece?" (available piece **and** active parent) has exactly one answer. Same for `priceCentsFor()` — a piece's `priceCents` is a nullable **override** that falls back to the product's, and that rule must not be re-remembered in four places.
+- **Always give `orderBy` a tiebreaker** (`[{ createdAt: "desc" }, { id: "desc" }]`). Sibling rows written by one nested `create` share an identical `createdAt`, and Postgres returns tied rows in arbitrary order — so a single-key sort reshuffles between page loads, and breaks outright under pagination.
+- **`db.ts` imports `server-only`**, so a `"use client"` file importing the data layer fails the build with a clear message. It also can't be imported from a plain node/tsx script — verify data changes by driving the app, not with a standalone script.
+- **Money is integer cents** end-to-end (`4800`, not `48.00`) — floats drift (`0.1 + 0.2 !== 0.3`) and must never reach a total. Format to "€48.00" only at render.
 
 ## Environment variables
 
