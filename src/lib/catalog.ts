@@ -13,6 +13,7 @@
  * means "what counts as a sellable piece?" has exactly one answer, in one file.
  */
 
+import type { Product, ReadyMadeItem } from "@/generated/prisma/client";
 import { getPrisma } from "@/lib/db";
 
 /**
@@ -97,13 +98,12 @@ export function getProductBySlug(slug: string) {
  *   grid:         priceCentsFor(piece, piece.product)
  *   product page: priceCentsFor(piece, product)
  *
- * Typed STRUCTURALLY — it asks for the two fields it reads, not for a named model, so any
- * row carrying them fits without either query knowing this helper exists.
+ * Params are the Prisma-generated model types, not bespoke shapes — the schema already
+ * defines `ReadyMadeItem.priceCents` (nullable override) and `Product.priceCents`, so we
+ * reuse that single source of truth. The richer rows the queries return (with relations
+ * included) are structurally assignable to the base models, so both call sites still fit.
  */
-export function priceCentsFor(
-  piece: { priceCents: number | null },
-  product: { priceCents: number },
-): number {
+export function priceCentsFor(piece: ReadyMadeItem, product: Product): number {
   return piece.priceCents ?? product.priceCents;
 }
 
