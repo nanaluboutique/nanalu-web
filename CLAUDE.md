@@ -61,7 +61,14 @@ Package manager is **npm** (committed `package-lock.json`). Node **24** (matches
 | Format           | `npm run format` | Prettier writes all files; `npm run format:check` only checks (used in CI).                  |
 
 - **Pre-commit:** Husky + lint-staged auto-run `eslint --fix` + `prettier --write` on staged files (config in `package.json`). The `prepare` script installs the Husky hooks on `npm install`.
-- **Tests:** _no test runner wired up yet._ When we add one (e.g. Vitest/Playwright), add a `test` script and document it here.
+- **Tests:** _no test runner wired up yet._ The rollout is phased across three issues:
+  1. **Runner setup — #52** (Vitest + React Testing Library + jsdom, `test` script, CI wiring). Prerequisite for all testing. Update this line once it lands.
+  2. **Pure-function backfill — #53** (unit tests for `imageUrl()` and `priceCentsFor()` — deterministic, no DB/browser). Blocked by #52.
+  3. **Deferred heavier layers — no issue yet, DON'T FORGET:**
+     - **Component tests** (React Testing Library): our current components are thin wrappers (`AssetImage`) not worth unit-testing. **Resurface when** we ship components with real behaviour — the shop grid (#43), category filters/sort (#44), or the Phase 3 configurator. File the issue then.
+     - **DB-integration tests** for the catalog queries (`listAvailablePieces`, `getProductBySlug`) — these need a throwaway test Postgres in CI, so they're a bigger lift. **Resurface when** we either stand up a test DB in CI or next touch query logic (pagination/filters in #44, or cart/checkout persistence later). File the issue then.
+
+  Claude: proactively suggest opening the deferred issue(s) when work hits one of those triggers — don't wait to be asked.
 
 ### Database (local: Docker + Prisma)
 
