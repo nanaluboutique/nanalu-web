@@ -35,6 +35,7 @@ _(Exact versions, configs, and rationale: **TODO after Phase 0**. Full reasoning
 - **Create issues via the `gh-issue-create` skill** → they auto-add to the Project board.
 - **Commits:** concise, imperative ("add product carousel"), not "fixed stuff".
 - **Definition of done:** builds, tests pass, CI green, reviewed, and the issue's acceptance criteria are met.
+- **End-of-issue test check.** Before calling an issue done, ask "did this add anything worth testing?" — pure logic with real branching (a helper, a price/format rule, a parser) gets unit tests _in the same PR_; heavier layers (component/DB behaviour) that hit a deferred-test trigger get an issue filed instead. See the **Tests** section for what's in scope now vs. deferred. Claude raises this proactively at the end of each issue — don't wait to be asked.
 
 ---
 
