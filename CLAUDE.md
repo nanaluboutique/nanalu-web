@@ -59,10 +59,11 @@ Package manager is **npm** (committed `package-lock.json`). Node **24** (matches
 | Run built app    | `npm run start`  | Serves the production build; run `build` first.                                              |
 | Lint             | `npm run lint`   | ESLint (flat config, `eslint.config.mjs`). `npm run lint:fix` to auto-fix.                   |
 | Format           | `npm run format` | Prettier writes all files; `npm run format:check` only checks (used in CI).                  |
+| Test             | `npm test`       | Vitest, single run (used in CI). `npm run test:watch` re-runs on change while developing.    |
 
 - **Pre-commit:** Husky + lint-staged auto-run `eslint --fix` + `prettier --write` on staged files (config in `package.json`). The `prepare` script installs the Husky hooks on `npm install`.
-- **Tests:** _no test runner wired up yet._ The rollout is phased across three issues:
-  1. **Runner setup — #52** (Vitest + React Testing Library + jsdom, `test` script, CI wiring). Prerequisite for all testing. Update this line once it lands.
+- **Tests:** runner is **Vitest** (with React Testing Library + jsdom). Config in `vitest.config.ts` (jsdom env, `globals: true`, the `@/*` → `src/*` alias mirrored from tsconfig by hand); `vitest.setup.ts` registers the jest-dom matchers. Scripts: **`npm test`** runs the suite once (this is what CI runs, right after `format:check`), **`npm run test:watch`** re-runs on change while you write tests. Vitest discovers any `*.test.ts` / `*.test.tsx` file anywhere; **convention: co-locate a module's unit tests beside it** (e.g. `src/lib/image.test.ts` next to `image.ts`). The two `tests/smoke.*` files only prove the harness is green — delete them once real tests exist. The rollout is phased across three issues:
+  1. **Runner setup — #52** ✅ landed — the Vitest/RTL/jsdom harness above.
   2. **Pure-function backfill — #53** (unit tests for `imageUrl()` and `priceCentsFor()` — deterministic, no DB/browser). Blocked by #52.
   3. **Deferred heavier layers — no issue yet, DON'T FORGET:**
      - **Component tests** (React Testing Library): our current components are thin wrappers (`AssetImage`) not worth unit-testing. **Resurface when** we ship components with real behaviour — the shop grid (#43), category filters/sort (#44), or the Phase 3 configurator. File the issue then.
