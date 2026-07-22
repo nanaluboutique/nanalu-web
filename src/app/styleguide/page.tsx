@@ -3,6 +3,7 @@
  * design tokens, fonts, and base primitives in the real app. Primitives match
  * the approved mockup (mockups/shop-pages.html) exactly.
  */
+import { AssetImage } from "@/components/ui/asset-image";
 import { Button } from "@/components/ui/button";
 import { Card, CardBody } from "@/components/ui/card";
 import { Brand, FaviconMark, Logo, Wordmark } from "@/components/ui/logo";
@@ -195,14 +196,44 @@ export default function Styleguide() {
         </div>
       </Section>
 
-      {/* Images — the #31 asset-key → URL seam (src/lib/image.ts) */}
+      {/* Images — the #31 asset-key → URL seam (src/lib/image.ts) rendered
+          through the #42 <AssetImage> wrapper (key → imageUrl() → next/image). */}
       <Section title="Images">
         <p className="text-ink-soft mb-4 max-w-prose text-sm">
           The DB stores an asset <strong>key</strong> (never a URL);{" "}
-          <code className="bg-sage-tint rounded px-1">imageUrl(key, opts)</code> builds the
-          Cloudinary delivery URL. Swapping providers later means editing one file. URLs are
-          well-formed but won&apos;t load a real image until the Cloudinary account + assets exist.
+          <code className="bg-sage-tint rounded px-1">&lt;AssetImage assetKey={"{key}"} /&gt;</code>{" "}
+          turns it into a Cloudinary URL via{" "}
+          <code className="bg-sage-tint rounded px-1">imageUrl()</code> and renders it through
+          next/image (lazy-loaded, resized, no layout shift). Swapping providers later means editing
+          one file.
         </p>
+
+        {/* A real render, end-to-end. Uses the Cloudinary "demo" sandbox's own
+            `sample` asset so it actually loads on the placeholder cloud — our
+            seed keys (products/…) live in the real account we don't have yet. */}
+        <div className="border-line bg-card rounded-card mb-5 flex flex-wrap items-start gap-5 border p-6">
+          <AssetImage
+            assetKey="sample"
+            alt="Cloudinary demo sample image"
+            width={300}
+            height={200}
+            className="rounded-lg"
+          />
+          <div className="text-ink-soft flex flex-col gap-1.5 text-xs">
+            <div className="font-semibold">rendered via</div>
+            <code className="bg-primary-tint w-fit rounded px-1.5 py-0.5 text-sm">
+              &lt;AssetImage assetKey=&quot;sample&quot; width={"{300}"} height={"{200}"} /&gt;
+            </code>
+            <p className="mt-1.5 max-w-xs">
+              The <code className="bg-sage-tint rounded px-1">sample</code> key resolves on
+              Cloudinary&apos;s public <code className="bg-sage-tint rounded px-1">demo</code>{" "}
+              cloud. The product keys below are shown as URLs only — they&apos;d render the same way
+              through <code className="bg-sage-tint rounded px-1">&lt;AssetImage&gt;</code> once the
+              real account + assets exist, with no code change.
+            </p>
+          </div>
+        </div>
+
         <div className="border-line bg-card rounded-card flex flex-col gap-5 border p-6">
           {IMAGE_KEYS.map((key) => (
             <div key={key} className="flex flex-col gap-1.5">

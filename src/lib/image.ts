@@ -37,6 +37,17 @@ const CLOUD_NAME = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME ?? "";
 /**
  * The single function every render path calls: asset key → delivery URL.
  * Returns "" for an empty key so callers can render nothing without a guard.
+ *
+ * By default (no opts) this returns the ORIGINAL, untransformed image — on
+ * purpose. Our images render through next/image (via <AssetImage>), and Next's
+ * optimizer resizes + re-encodes them in a SINGLE pass. If we ALSO asked
+ * Cloudinary to compress, the image would be squeezed twice (a photocopy of a
+ * photocopy, slight quality loss) AND our resizing would ride on a
+ * Cloudinary-specific feature — the opposite of the swappable-storage goal
+ * (PLAN §4). So Next owns optimization and the store is treated as a plain
+ * origin, which keeps swapping Cloudinary → S3-compatible a one-file change.
+ * Pass opts only for a URL that BYPASSES next/image (e.g. an og:image meta tag),
+ * where you do want the provider to optimize because Next isn't in the loop.
  */
 export function imageUrl(key: string, opts: ImageTransform = {}): string {
   if (!key) return "";
@@ -47,17 +58,23 @@ export function imageUrl(key: string, opts: ImageTransform = {}): string {
       "imageUrl: NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME is not set — image URLs will be broken.",
     );
   }
-  return `https://res.cloudinary.com/${CLOUD_NAME}/image/upload/${cloudinaryTransforms(opts)}/${key}`;
+  // No opts → transforms is "" → deliver the original (…/upload/<key>).
+  // With opts → insert the transform segment (…/upload/<transforms>/<key>).
+  const transforms = cloudinaryTransforms(opts);
+  const path = transforms ? `${transforms}/${key}` : key;
+  return `https://res.cloudinary.com/${CLOUD_NAME}/image/upload/${path}`;
 }
 
 /**
- * Build Cloudinary's comma-joined transform segment (the ONLY Cloudinary-specific
- * logic — the swap point). Defaults to f_auto,q_auto: Cloudinary auto-negotiates
- * the best format (webp/avif) and quality per request, our main performance win.
- * Explicit opts override those defaults and add sizing/crop.
+ * Build Cloudinary's comma-joined transform segment from EXPLICIT opts only (the
+ * ONLY Cloudinary-specific logic — the swap point). No opts → "" → the original
+ * image, because Next's optimizer, not Cloudinary, does our resizing/format/
+ * quality (see imageUrl). Each provided opt maps to one Cloudinary token.
  */
 function cloudinaryTransforms(opts: ImageTransform): string {
-  const tokens = [`f_${opts.format ?? "auto"}`, `q_${opts.quality ?? "auto"}`];
+  const tokens: string[] = [];
+  if (opts.format) tokens.push(`f_${opts.format}`);
+  if (opts.quality) tokens.push(`q_${opts.quality}`);
   if (opts.width) tokens.push(`w_${opts.width}`);
   if (opts.height) tokens.push(`h_${opts.height}`);
   if (opts.crop) tokens.push(`c_${opts.crop}`);
