@@ -20,7 +20,7 @@ Cardinality shorthand: `||` = one, `<`/`>` = many. So `A ||──< B` reads "one
                           CATALOG  (#27 — built now)
    Category  >─────< Product  ||─────< ReadyMadeItem
    (M:N, admin      (the shared        (unique one-of-a-kind
-    multi-tag)       listing)           in-stock pieces)
+    multi-tag)       listing)           in-stock items)
 
                      Material   ← defined standalone now; its relations
                      (fabric OR   arrive with the configurator (#28)
@@ -45,7 +45,7 @@ Cardinality shorthand: `||` = one, `<`/`>` = many. So `A ||──< B` reads "one
 ### Product — the shared listing
 
 One row per thing sold (e.g. "Linen Tote Bag"). Umbrella for **both** buying paths:
-a product can have ready-made pieces in stock **and** offer customization.
+a product can have ready-made items in stock **and** offer customization.
 
 | Field            | Type            | Notes                                                            |
 | ---------------- | --------------- | ---------------------------------------------------------------- |
@@ -54,7 +54,7 @@ a product can have ready-made pieces in stock **and** offer customization.
 | `updatedAt`      | DateTime        | auto-bumped on edit (bookkeeping)                                |
 | `name`           | String          |                                                                  |
 | `slug`           | String @unique  | URL handle (`/shop/linen-tote`)                                  |
-| `description`    | String          | the **shared/general** blurb (true of every piece)               |
+| `description`    | String          | the **shared/general** blurb (true of every item)                |
 | `priceCents`     | Int             | money as **integer cents** (no float bugs; Stripe-ready)         |
 | `images`         | String[]        | Cloudinary ids; feeds the carousel                               |
 | `customizable`   | Boolean         | offers the configurator? drives the _Customize_ button + filter  |
@@ -75,24 +75,24 @@ Small table of browse buckets (Bags & totes, Pouches, Home, Knitwear, Accessorie
 | `slug`                    | String @unique | filter/URL key                            |
 | `products`                | Product[]      | **M:N** back to Product                   |
 
-### ReadyMadeItem — a unique in-stock piece
+### ReadyMadeItem — a unique in-stock item
 
 A single one-of-a-kind finished object under a Product (**qty always 1** — so no quantity
-field; a piece is simply available or gone).
+field; a item is simply available or gone).
 
-| Field                     | Type              | Notes                                                                      |
-| ------------------------- | ----------------- | -------------------------------------------------------------------------- |
-| `id`                      | String (cuid)     |                                                                            |
-| `createdAt` / `updatedAt` | DateTime          |                                                                            |
-| `productId`               | String            | **FK column** — the 1:N link back to Product                               |
-| `product`                 | Product @relation | doorway to parent (`fields: [productId]`, `onDelete: Cascade`)             |
-| `images`                  | String[]          | this piece's own gallery (quick-view + the card swatch image)              |
-| `description`             | String            | **this piece's** blurb: fabric + any one-off quirks (material-as-**text**) |
-| `priceCents`              | Int?              | **optional override**; falls back to `product.priceCents`                  |
-| `available`               | Boolean           | `true` = for sale · `false` = sold (first-come; re-checked at checkout)    |
+| Field                     | Type              | Notes                                                                     |
+| ------------------------- | ----------------- | ------------------------------------------------------------------------- |
+| `id`                      | String (cuid)     |                                                                           |
+| `createdAt` / `updatedAt` | DateTime          |                                                                           |
+| `productId`               | String            | **FK column** — the 1:N link back to Product                              |
+| `product`                 | Product @relation | doorway to parent (`fields: [productId]`, `onDelete: Cascade`)            |
+| `images`                  | String[]          | this item's own gallery (quick-view + the card swatch image)              |
+| `description`             | String            | **this item's** blurb: fabric + any one-off quirks (material-as-**text**) |
+| `priceCents`              | Int?              | **optional override**; falls back to `product.priceCents`                 |
+| `available`               | Boolean           | `true` = for sale · `false` = sold (first-come; re-checked at checkout)   |
 
 The broad description lives on `Product`; the item's `description` is what makes _this_
-piece distinct. The UI shows both by reading `item.product.description` through the relation
+item distinct. The UI shows both by reading `item.product.description` through the relation
 (not duplicated onto the item).
 
 ### Material — fabric OR colour
@@ -154,7 +154,7 @@ consumes `quantity` of the chosen material.
 | `materials` | Material[]    | **M:N** — the allowed palette (implicit `_MaterialToSlot` join) |
 
 **Meterage lives on the Slot, not the palette.** The amount is a property of the pattern
-piece ("the body panel needs ~0.5 m"), the same whichever allowed material you pick — like a
+item ("the body panel needs ~0.5 m"), the same whichever allowed material you pick — like a
 sewing pattern's fabric-requirements line. A slot's palette is homogeneous in unit (a fabric
 area takes fabrics; a yarn area takes yarn), so one `quantity` + `unit` on the slot is exact
 without a number per (slot × material). If a slot ever needs per-material amounts, moving
@@ -237,7 +237,7 @@ never rewrite the past.
 
 ### Reservation — a temporary meterage hold
 
-**Made-to-order only.** Ready-made pieces are first-come (a boolean `available`), never
+**Made-to-order only.** Ready-made items are first-come (a boolean `available`), never
 reserved. Reserve at add-to-cart (`ACTIVE`, with expiry) → deduct + `CONSUMED` on payment →
 `RELEASED` on expiry or a **pre-production** cancellation (only that path restocks).
 
@@ -259,7 +259,7 @@ reserved. Reserve at add-to-cart (`ACTIVE`, with expiry) → deduct + `CONSUMED`
 | User → Order              | **1:N** (opt) | a customer has many orders; an order has 0-or-1 user (guest = null `userId`)     |
 | Order → OrderItem         | **1:N**       | one order, many lines (`onDelete: Cascade` — deleting an order clears its lines) |
 | OrderItem → Product       | **1:N** (opt) | a made-to-order line references its product; `SetNull` keeps history on delete   |
-| OrderItem → ReadyMadeItem | **1:N** (opt) | a ready-made line references its piece; `SetNull` keeps history on delete        |
+| OrderItem → ReadyMadeItem | **1:N** (opt) | a ready-made line references its item; `SetNull` keeps history on delete         |
 | Order → Reservation       | **1:N** (opt) | the holds an order consumed; `null` while still in a cart                        |
 | Reservation → Material    | **1:N**       | each hold is against one material; `Restrict` (materials are soft-deleted)       |
 | User ⇄ Product            | **M:N**       | favourites; implicit `_ProductToUser` join; powers "Most loved"                  |
@@ -288,7 +288,7 @@ reserved. Reserve at add-to-cart (`ACTIVE`, with expiry) → deduct + `CONSUMED`
   restock" — that's a **simplification**. Meterage can only go back to stock if the fabric
   was never cut. `Order.productionStartedAt` is the gate: `null` = not cut → cancellable and
   restockable; once set, the meterage is physically spent and a later cancel/return does
-  **not** restock. A returned _finished_ piece isn't meterage at all — if resellable it's
+  **not** restock. A returned _finished_ item isn't meterage at all — if resellable it's
   relisted as a new `ReadyMadeItem` (admin flow, Phase 8).
 - **Reservations link order-level (`orderId`), not per-line.** Whole-order refunds are the
   only case until Phase 8; per-line refunds (add `orderItemId` + a `cartLineId` cart grouping)
@@ -306,7 +306,7 @@ reserved. Reserve at add-to-cart (`ACTIVE`, with expiry) → deduct + `CONSUMED`
 | Relationship                  | Cardinality   | Why                                                                                                                                    |
 | ----------------------------- | ------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
 | Category ⇄ Product            | **M:N**       | a product can sit in several categories (a knitted bag = Bags _and_ Knitwear); Prisma auto-creates the `_CategoryToProduct` join table |
-| Product → ReadyMadeItem       | **1:N**       | one listing has many one-off pieces; each piece belongs to one product (foreign key `productId` on the item)                           |
+| Product → ReadyMadeItem       | **1:N**       | one listing has many one-off items; each item belongs to one product (foreign key `productId` on the item)                             |
 | ReadyMadeItem → Material      | **none**      | intentionally not linked — material info is display **text** (see decisions)                                                           |
 | Product ⇄ CustomizationConfig | **1:1** (opt) | a customizable product has one config; `productId @unique` on the config enforces it (`#28`)                                           |
 | CustomizationConfig → Slot    | **1:N**       | one config, many fillable areas (`#28`)                                                                                                |
@@ -317,12 +317,12 @@ reserved. Reserve at add-to-cart (`ACTIVE`, with expiry) → deduct + `CONSUMED`
 
 ## Key design decisions (with rationale)
 
-- **Ready-made material = text, not a relation.** A ready-made piece is _already made_;
+- **Ready-made material = text, not a relation.** A ready-made item is _already made_;
   its fabric was consumed at creation, so the listing never checks material stock — the
   info is descriptive, like a clothing store's "100% linen" line. A structured link
   would earn its keep only if we queried/decremented on it, which ready-made never does.
 - **Ready-made stock = first-come, no cart hold.** Reservations hold fabric **meterage**
-  for _made-to-order_ items only (a shared, finite resource). A ready-made piece is a
+  for _made-to-order_ items only (a shared, finite resource). A ready-made item is a
   single object — it's simply `available` true/false. If two shoppers race, the first to
   **complete checkout** wins; the other gets an out-of-stock notice at a checkout re-check
   (#29). So `ReadyMadeItem` has **no `RESERVED` state** — a boolean, not an enum.
@@ -330,15 +330,15 @@ reserved. Reserve at add-to-cart (`ACTIVE`, with expiry) → deduct + `CONSUMED`
   a product can carry several tags at once.
 - **Catalog grid = one card per available `ReadyMadeItem`** (H&M/Zalando-style). 5 tote
   versions = 5 cards, all sharing `product.name` (duplicate names are fine — that's how a
-  store shows one style in 15 colours). Each card differs only by the _piece's_ `images` +
+  store shows one style in 15 colours). Each card differs only by the _item's_ `images` +
   `description`; name / price / `customizable` tag are read from the parent through the
   relation. Query is a one-liner:
   `readyMadeItem.findMany({ where: { available: true }, include: { product: true } })` —
   no per-product fallback.
-  - **Customizable products with _zero_ ready-made pieces are NOT shown as cards.** The
-    catalog page instead carries a **CTA element** ("more made-to-order pieces on the
+  - **Customizable products with _zero_ ready-made items are NOT shown as cards.** The
+    catalog page instead carries a **CTA element** ("more made-to-order items on the
     Customize page →") linking to `/customize` (Phase 3 / #28). A non-customizable product
-    with zero pieces is simply sold-out/hidden.
+    with zero items is simply sold-out/hidden.
   - Purely a query/render choice — schema is unchanged.
 - **`Material` defined standalone now.** Model a relationship only when a consumer needs
   it; the configurator (#28) is Material's first consumer, so its relations wait for it.
@@ -355,21 +355,21 @@ Not built now — noted so the shape is ready and we don't lose the idea. All ar
 **additive** (new table/field + migration, no restructuring), so cheap to add later —
 especially while the catalog is seed-data only (nothing to backfill).
 
-| Idea                                                            | What it needs                                                                                                                                                                                                                                                      | Why deferred                                                                                        |
-| --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------- |
-| **Filter by fabric _type_** (linen, cotton, wool — broad fibre) | a new `FabricType` tag table, **M:N** to Product (same pattern as Category). _Not_ derived from the `Material` entity — it's a coarse bucket, its own axis                                                                                                         | not in the mockup's filter list; no consumer yet                                                    |
-| **Filter by fabric _colour_** (the swatch filter in the mockup) | a **structured `Colour` tag on `ReadyMadeItem`** (each piece has its colour(s)). The product grid filters parents _through_ the nesting via `readyMadeItems: { some: { colours: { some: … } } }`. **Double duty:** same data powers the **card swatch dots** below | Phase 2 filtering feature; deferred, but the shape is now known (lives on the piece, not free text) |
-| **"Most loved" sort**                                           | ~~a favourites count from a `User ⇄ Product` (M:N) relation~~ — the relation **now exists** (#29, `User.favourites`); only the sort query/UI remains, in Phase 2                                                                                                   | relation delivered; sort deferred to the Phase 2 filtering/sort feature                             |
+| Idea                                                            | What it needs                                                                                                                                                                                                                                                     | Why deferred                                                                                       |
+| --------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| **Filter by fabric _type_** (linen, cotton, wool — broad fibre) | a new `FabricType` tag table, **M:N** to Product (same pattern as Category). _Not_ derived from the `Material` entity — it's a coarse bucket, its own axis                                                                                                        | not in the mockup's filter list; no consumer yet                                                   |
+| **Filter by fabric _colour_** (the swatch filter in the mockup) | a **structured `Colour` tag on `ReadyMadeItem`** (each item has its colour(s)). The product grid filters parents _through_ the nesting via `readyMadeItems: { some: { colours: { some: … } } }`. **Double duty:** same data powers the **card swatch dots** below | Phase 2 filtering feature; deferred, but the shape is now known (lives on the item, not free text) |
+| **"Most loved" sort**                                           | ~~a favourites count from a `User ⇄ Product` (M:N) relation~~ — the relation **now exists** (#29, `User.favourites`); only the sort query/UI remains, in Phase 2                                                                                                  | relation delivered; sort deferred to the Phase 2 filtering/sort feature                            |
 
 ### Catalog card interaction (planned, front-end only)
 
-Discoverability is inherently handled now — every ready-made piece is already its own card.
+Discoverability is inherently handled now — every ready-made item is already its own card.
 Swatch dots become an _optional nicety_ on top:
 
-- **Swatch dots on a card** = the sibling pieces of the same product; each dot's colour
+- **Swatch dots on a card** = the sibling items of the same product; each dot's colour
   comes from the deferred `Colour` tag above.
 - **Clicking a swatch swaps the card's image inline** (no navigation) to that sibling's
-  photo — pure React state, using each piece's existing `images`. No schema impact.
+  photo — pure React state, using each item's existing `images`. No schema impact.
 
 > Reminder: the mockup's filter sidebar is **Category · Availability · Fabric colour ·
 > Price**, and the sort dropdown includes **Newest · Price · Most loved**. Category,
