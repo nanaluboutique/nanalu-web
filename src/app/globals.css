@@ -245,7 +245,7 @@
   }
   .card .fav:hover {
     transform: scale(1.1);
-    background-color: #fff;
+    background-color: var(--color-card);
   }
   .card .ph .badge {
     position: absolute;
@@ -267,16 +267,19 @@
     display: flex;
     align-items: center;
     margin-top: 12px;
-    position: relative;
-    z-index: 1; /* keep the price + Add button above the stretched card link */
   }
   .price {
     font-weight: 700;
     color: var(--color-heading);
     font-size: 1.05rem;
   }
+  /* Only the Add button is lifted above the stretched card link (not the whole
+     .card-foot), so clicking the row's empty space still follows the card link
+     to the product instead of landing on a dead zone. */
   .card-foot .btn {
     margin-left: auto;
+    position: relative;
+    z-index: 1;
   }
 
   /* Whole-card click target (not in the static mockup). One stretched link
@@ -294,17 +297,17 @@
   /* Sibling photo-swap thumbnails on a card (not in the static mockup — the
      interaction docs/data-model.md describes). Scaled-down cousins of the
      product page's .iter thumbs: rounded, transparent border that turns sage on
-     hover and primary for the active item. z-index keeps them above the
-     stretched card link. */
+     hover and primary for the active item. */
   .card-swatches {
     display: flex;
     gap: 8px;
     margin-top: 12px;
-    position: relative;
-    z-index: 1;
   }
+  /* Each swatch (not the whole row) is lifted above the stretched card link, so
+     the row's empty gaps still follow the card link instead of being dead. */
   .card-swatch {
     position: relative;
+    z-index: 1;
     width: 40px;
     height: 40px;
     border-radius: 10px;

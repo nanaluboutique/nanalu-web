@@ -30,9 +30,13 @@ export function ProductCard({ card }: { card: ShopCard }) {
 
   // The sibling currently on display. Falls back to the first sibling if the
   // selected id ever doesn't match (it always should — the default is one of the
-  // siblings — but this keeps `selectedItem` defined).
+  // siblings). itemsToCards never emits a card with no siblings, but this
+  // component is reused (the product page's "you may also like" row, #45), so we
+  // guard: a card with nothing to show renders nothing rather than crashing.
+  // (The guard sits AFTER useState so hooks always run in the same order.)
   const selectedItem =
     card.itemSiblings.find((sibling) => sibling.itemId === selectedItemId) ?? card.itemSiblings[0];
+  if (!selectedItem) return null;
 
   const productHref = `/shop/${card.productSlug}?item=${selectedItem.itemId}`;
 

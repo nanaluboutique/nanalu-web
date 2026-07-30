@@ -31,8 +31,14 @@ describe("formatEuros", () => {
     expect(formatEuros(2210)).toBe("€22.10");
   });
 
-  it("formats a negative amount (a future refund line) sensibly", () => {
-    // Math.abs on the remainder keeps the minus on the euros only.
+  it("formats a negative amount (a future refund line), keeping the sign", () => {
     expect(formatEuros(-4805)).toBe("€-48.05");
+  });
+
+  it("keeps the minus sign on a negative amount under one euro", () => {
+    // Regression guard: splitting with Math.trunc makes the euro part -0, which
+    // stringifies to "0" and drops the sign ("€0.50"). The explicit sign fixes it.
+    expect(formatEuros(-50)).toBe("€-0.50");
+    expect(formatEuros(-5)).toBe("€-0.05");
   });
 });
