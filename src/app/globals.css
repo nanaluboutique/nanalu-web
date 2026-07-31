@@ -104,6 +104,18 @@
   }
 }
 
+/* Pointer cursor on every ENABLED button — mockup's global `button { cursor: pointer }`
+   (line 65), which the port had dropped, so raw buttons (gallery arrows/thumbnails, the
+   card heart, nav icons) showed the default arrow.
+   Deliberately UN-layered (not in @layer base): inside the base layer Tailwind v4 was
+   silently dropping this bare-element rule (class rules like .btn came through, this one
+   did not). Un-layered CSS is always emitted. `:not(:disabled)` scopes it to enabled
+   buttons, so disabled ones keep their not-allowed cursor even though un-layered rules
+   outrank the components layer where `.btn:disabled` lives. */
+button:not(:disabled) {
+  cursor: pointer;
+}
+
 /*
  * Component classes — ported verbatim from the approved mockup
  * (mockups/shop-pages.html). The mockup is the spec; these match it exactly,
@@ -386,5 +398,43 @@
     border-radius: var(--radius-pill);
     font-size: 0.76rem;
     padding: 1px 7px;
+  }
+
+  /* Accordion (product page info) — mockup .accordion. Built on the native
+     <details>/<summary> elements, so open/close is the browser's job (no JS).
+     The +/× toggle is the summary's ::after "+", rotated 45° into an × when the
+     parent <details> is open. */
+  .accordion {
+    border-top: 1px solid var(--color-line);
+  }
+  .accordion details {
+    border-bottom: 1px solid var(--color-line);
+  }
+  .accordion summary {
+    list-style: none; /* drop the default disclosure triangle… */
+    cursor: pointer;
+    padding: 15px 2px;
+    font-weight: 700;
+    color: var(--color-heading);
+    display: flex;
+    align-items: center;
+  }
+  .accordion summary::-webkit-details-marker {
+    display: none; /* …and the WebKit/Safari variant of that triangle too */
+  }
+  .accordion summary::after {
+    content: "+";
+    margin-left: auto; /* pushes the +/× to the far right of the row */
+    font-size: 1.3rem;
+    color: var(--color-primary);
+    transition: transform 0.2s;
+  }
+  .accordion details[open] summary::after {
+    transform: rotate(45deg); /* "+" becomes "×" when the section is open */
+  }
+  .accordion .body {
+    padding: 0 2px 16px;
+    color: var(--color-ink-soft);
+    font-size: 0.94rem;
   }
 }

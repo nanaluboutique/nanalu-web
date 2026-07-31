@@ -47,20 +47,22 @@ Cardinality shorthand: `||` = one, `<`/`>` = many. So `A ||──< B` reads "one
 One row per thing sold (e.g. "Linen Tote Bag"). Umbrella for **both** buying paths:
 a product can have ready-made items in stock **and** offer customization.
 
-| Field            | Type            | Notes                                                            |
-| ---------------- | --------------- | ---------------------------------------------------------------- |
-| `id`             | String (cuid)   | primary key; random, not sequential (doesn't leak catalog size)  |
-| `createdAt`      | DateTime        | set once — powers the **"Newest"** sort                          |
-| `updatedAt`      | DateTime        | auto-bumped on edit (bookkeeping)                                |
-| `name`           | String          |                                                                  |
-| `slug`           | String @unique  | URL handle (`/shop/linen-tote`)                                  |
-| `description`    | String          | the **shared/general** blurb (true of every item)                |
-| `priceCents`     | Int             | money as **integer cents** (no float bugs; Stripe-ready)         |
-| `images`         | String[]        | Cloudinary ids; feeds the carousel                               |
-| `customizable`   | Boolean         | offers the configurator? drives the _Customize_ button + filter  |
-| `active`         | Boolean         | soft-delete: `false` = discontinued (consistent with `Material`) |
-| `categories`     | Category[]      | **M:N** — see below                                              |
-| `readyMadeItems` | ReadyMadeItem[] | **1:N** — see below                                              |
+| Field            | Type            | Notes                                                              |
+| ---------------- | --------------- | ------------------------------------------------------------------ |
+| `id`             | String (cuid)   | primary key; random, not sequential (doesn't leak catalog size)    |
+| `createdAt`      | DateTime        | set once — powers the **"Newest"** sort                            |
+| `updatedAt`      | DateTime        | auto-bumped on edit (bookkeeping)                                  |
+| `name`           | String          |                                                                    |
+| `slug`           | String @unique  | URL handle (`/shop/linen-tote`)                                    |
+| `description`    | String          | the **shared/general** blurb (true of every item)                  |
+| `care`           | String?         | care instructions; **nullable**; `ReadyMadeItem.care` can override |
+| `dimensions`     | String?         | size/measurements — the product's shape, so **no item override**   |
+| `priceCents`     | Int             | money as **integer cents** (no float bugs; Stripe-ready)           |
+| `images`         | String[]        | Cloudinary ids; feeds the carousel                                 |
+| `customizable`   | Boolean         | offers the configurator? drives the _Customize_ button + filter    |
+| `active`         | Boolean         | soft-delete: `false` = discontinued (consistent with `Material`)   |
+| `categories`     | Category[]      | **M:N** — see below                                                |
+| `readyMadeItems` | ReadyMadeItem[] | **1:N** — see below                                                |
 
 ### Category — admin-managed product tags
 
@@ -88,12 +90,21 @@ field; a item is simply available or gone).
 | `product`                 | Product @relation | doorway to parent (`fields: [productId]`, `onDelete: Cascade`)            |
 | `images`                  | String[]          | this item's own gallery (quick-view + the card swatch image)              |
 | `description`             | String            | **this item's** blurb: fabric + any one-off quirks (material-as-**text**) |
+| `care`                    | String?           | **optional override**; falls back to `product.care` (like `priceCents`)   |
 | `priceCents`              | Int?              | **optional override**; falls back to `product.priceCents`                 |
 | `available`               | Boolean           | `true` = for sale · `false` = sold (first-come; re-checked at checkout)   |
 
 The broad description lives on `Product`; the item's `description` is what makes _this_
 item distinct. The UI shows both by reading `item.product.description` through the relation
 (not duplicated onto the item).
+
+**Care follows the same override pattern as `priceCents`.** An item made in a different
+material (a wool version of a cotton product) can set its own `care`; otherwise it inherits
+`product.care`. The fallback rule lives in one place — `careFor(item, product)` in
+`lib/catalog.ts`, beside `priceCentsFor`. **`dimensions` stays product-level** (no item
+override): a product's shape is the same across its items. Both new fields are **nullable**,
+and the product page hides the matching accordion section when empty — so "not written yet"
+shows nothing rather than an empty heading. (Added with the product page, #45.)
 
 ### Material — fabric OR colour
 

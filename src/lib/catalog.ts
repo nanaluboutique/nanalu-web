@@ -108,6 +108,24 @@ export function priceCentsFor(item: ReadyMadeItem, product: Product): number {
 }
 
 /**
+ * This item's care instructions: its own if set, else the parent product's.
+ *
+ * Same shape as priceCentsFor — `ReadyMadeItem.care` is a nullable OVERRIDE, so
+ * an item made in a different material (a wool version of a cotton product) can
+ * carry its own care text, while most items leave it null and inherit the
+ * product's. The one fallback rule lives here so the product page (and anything
+ * later) can't re-remember it differently.
+ *
+ * Returns null when NEITHER is set — the accordion then hides the Care section
+ * rather than showing an empty one. Parent passed separately for the same reason
+ * as priceCentsFor: the product-page query nests items inside the product, so
+ * they carry no `product` of their own.
+ */
+export function careFor(item: ReadyMadeItem, product: Product): string | null {
+  return item.care ?? product.care;
+}
+
+/**
  * The shapes the two queries return — so components can type their props without
  * re-describing (and drifting from) the `include` clauses above.
  *
@@ -201,4 +219,42 @@ export function itemsToCards(items: CatalogItem[]): ShopCard[] {
     // Non-null: every item pushed its own product's array above.
     itemSiblings: itemsByProduct.get(item.productId)!,
   }));
+}
+
+/**
+ * Cards for the product page's "You may also like" row (#45).
+ *
+ * "Related" = other AVAILABLE items whose product shares a category with the one
+ * being viewed, newest first; if that's too thin to fill the row, newest-overall
+ * tops it up. The viewed product itself is always excluded.
+ *
+ * We fetch every candidate available item once and rank in memory (category
+ * matches first, else newest) instead of firing two queries — the catalog is
+ * small, so one read is simpler and the sort is trivial. Add a `take`/pagination
+ * here if the catalog ever grows large.
+ *
+ * Returns cards in the same one-per-item shape the grid uses, capped at `limit`,
+ * so the row reuses <ProductCard> unchanged.
+ */
+export async function listRelatedCards(product: ProductDetail, limit = 4): Promise<ShopCard[]> {
+  const categoryIds = new Set(product.categories.map((category) => category.id));
+
+  const items = await getPrisma().readyMadeItem.findMany({
+    where: { available: true, product: { active: true, id: { not: product.id } } },
+    include: { product: { include: { categories: true } } },
+    orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+  });
+
+  // Split into two piles, then combine — related (same-category) items first,
+  // everyone else after. filter walks the list in order, so each pile keeps the
+  // query's newest-first order with no re-sorting.
+  const sharesCategory = (item: CatalogItem) =>
+    item.product.categories.some((cat) => categoryIds.has(cat.id));
+
+  const sameCategory = items.filter(sharesCategory);
+  const others = items.filter((item) => !sharesCategory(item));
+  const orderedItems = [...sameCategory, ...others];
+
+  // One card per available item (same shape as the grid), capped at `limit`.
+  return itemsToCards(orderedItems).slice(0, limit);
 }

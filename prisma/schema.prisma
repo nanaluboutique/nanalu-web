@@ -24,6 +24,8 @@ model Product {
   name         String
   slug         String   @unique
   description  String
+  care         String?  // care instructions; ReadyMadeItem.care can override per item
+  dimensions   String?  // size/measurements — the product's shape, so no item override
   priceCents   Int
   images       String[]
   customizable Boolean  @default(false)
@@ -59,6 +61,7 @@ model ReadyMadeItem {
 
   images      String[]
   description String
+  care        String? // optional override; falls back to product.care (like priceCents)
   priceCents  Int? // optional override; falls back to product.priceCents
   available   Boolean  @default(true) // true = for sale, false = sold
 
