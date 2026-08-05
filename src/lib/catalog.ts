@@ -245,14 +245,18 @@ export async function listRelatedCards(product: ProductDetail, limit = 4): Promi
     orderBy: [{ createdAt: "desc" }, { id: "desc" }],
   });
 
-  // Split into two piles, then combine — related (same-category) items first,
-  // everyone else after. filter walks the list in order, so each pile keeps the
-  // query's newest-first order with no re-sorting.
+  // Partition into two piles in ONE pass (each item's category check runs once),
+  // then combine — related (same-category) items first, everyone else after. We
+  // push in encounter order, so both piles keep the query's newest-first order
+  // with no re-sorting.
   const sharesCategory = (item: CatalogItem) =>
     item.product.categories.some((cat) => categoryIds.has(cat.id));
 
-  const sameCategory = items.filter(sharesCategory);
-  const others = items.filter((item) => !sharesCategory(item));
+  const sameCategory: CatalogItem[] = [];
+  const others: CatalogItem[] = [];
+  for (const item of items) {
+    (sharesCategory(item) ? sameCategory : others).push(item);
+  }
   const orderedItems = [...sameCategory, ...others];
 
   // One card per available item (same shape as the grid), capped at `limit`.

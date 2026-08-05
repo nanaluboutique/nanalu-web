@@ -104,16 +104,21 @@
   }
 }
 
-/* Pointer cursor on every ENABLED button — mockup's global `button { cursor: pointer }`
-   (line 65), which the port had dropped, so raw buttons (gallery arrows/thumbnails, the
-   card heart, nav icons) showed the default arrow.
-   Deliberately UN-layered (not in @layer base): inside the base layer Tailwind v4 was
-   silently dropping this bare-element rule (class rules like .btn came through, this one
-   did not). Un-layered CSS is always emitted. `:not(:disabled)` scopes it to enabled
-   buttons, so disabled ones keep their not-allowed cursor even though un-layered rules
-   outrank the components layer where `.btn:disabled` lives. */
-button:not(:disabled) {
-  cursor: pointer;
+@layer base {
+  /* Pointer cursor on every ENABLED button — restores the mockup's global
+     `button { cursor: pointer }` (line 65) the port had dropped, so raw buttons
+     (gallery arrows/thumbnails, the card heart, nav icons) get the pointer.
+
+     In @layer base ON PURPOSE: base sits BELOW the utilities layer, so a future
+     `cursor-*` utility on a specific button still wins (an un-layered rule would
+     silently override every such utility). Note the selector must be
+     `button:not(:disabled)`, NOT a bare `button` — Tailwind v4 drops the
+     bare-element form from the base layer (it never reaches the stylesheet),
+     while the :not() form emits. The :not(:disabled) also leaves disabled
+     buttons on their own cursor (e.g. .btn:disabled's not-allowed). */
+  button:not(:disabled) {
+    cursor: pointer;
+  }
 }
 
 /*

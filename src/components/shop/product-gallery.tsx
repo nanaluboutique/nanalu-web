@@ -24,6 +24,18 @@ import { cn } from "@/lib/cn";
 export function ProductGallery({ images, alt }: { images: string[]; alt: string }) {
   const [selectedIndex, setSelectedIndex] = useState(0);
 
+  // Reset to the first photo when the image SET changes — #46 will swap in a
+  // different item's photos, and without this a stale selectedIndex could point
+  // past the new (shorter) list, leaving the main image on a fallback while no
+  // thumbnail is highlighted. React's "adjust state during render" reset pattern;
+  // compared by CONTENT (join) so a same-content new array reference doesn't reset.
+  const imagesKey = images.join("\n");
+  const [lastImagesKey, setLastImagesKey] = useState(imagesKey);
+  if (imagesKey !== lastImagesKey) {
+    setLastImagesKey(imagesKey);
+    setSelectedIndex(0);
+  }
+
   const count = images.length;
 
   // Prev/next cycle with wraparound. The functional update form (i => …) reads

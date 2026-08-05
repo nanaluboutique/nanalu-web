@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -16,6 +17,21 @@ import { formatEuros } from "@/lib/money";
 // build database-free.
 export const dynamic = "force-dynamic";
 
+// Per-product <title>/description, so each page is distinct in the browser tab and
+// in search results (without this, every product inherits the generic site title).
+// This re-reads the product (a second query per request); fine for these low-traffic
+// pages — wrap getProductBySlug in React `cache()` later if it ever matters.
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const product = await getProductBySlug(slug);
+  if (!product) return {};
+  return { title: product.name, description: product.description };
+}
+
 /*
  * The product detail page (#45), served at /shop/[slug] — e.g. /shop/linen-tote-bag.
  *
@@ -28,10 +44,13 @@ export default async function ProductPage({
   searchParams,
 }: {
   params: Promise<{ slug: string }>;
-  searchParams: Promise<{ item?: string }>;
+  searchParams: Promise<{ item?: string | string[] }>;
 }) {
   const { slug } = await params;
-  const { item: itemIdFromUrl } = await searchParams;
+  // A repeated ?item= (e.g. ?item=a&item=b) arrives as an array; take the first so
+  // itemIdFromUrl is a single id or undefined.
+  const { item } = await searchParams;
+  const itemIdFromUrl = Array.isArray(item) ? item[0] : item;
 
   // One catalog read. Returns null for an unknown slug OR a discontinued product,
   // so a single null check covers both "no such page" cases. notFound() returns
@@ -121,9 +140,9 @@ export default async function ProductPage({
           {product.customizable && (
             <div className="bg-sage-tint mb-2 flex flex-wrap items-center gap-4 rounded-[18px] border border-[color-mix(in_srgb,var(--color-sage)_55%,white)] px-[22px] py-[18px]">
               <div className="flex-1">
-                <h4 className="text-chip-ink font-display text-[1.15rem] font-semibold">
+                <p className="text-chip-ink font-display text-[1.15rem] font-semibold">
                   Want a different fabric?
-                </h4>
+                </p>
                 <p className="text-ink-soft mt-0.5 text-[0.88rem]">
                   Design your own in the configurator — same price, your fabrics.
                 </p>
