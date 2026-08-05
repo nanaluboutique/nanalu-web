@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
 import type { Category, Product, ReadyMadeItem } from "@/generated/prisma/client";
-import { itemsToCards, priceCentsFor, type CatalogItem } from "@/lib/catalog";
+import { careFor, itemsToCards, priceCentsFor, type CatalogItem } from "@/lib/catalog";
 
 // catalog.ts imports @/lib/db, which imports `server-only` — a module that THROWS
 // the instant it loads outside a React Server Component (so a browser bundle can
@@ -25,6 +25,7 @@ function makeItem(overrides: Partial<ReadyMadeItem> = {}): ReadyMadeItem {
     productId: "prod_1",
     images: [],
     description: "A linen tote in navy",
+    care: null,
     priceCents: null,
     available: true,
     ...overrides,
@@ -39,6 +40,8 @@ function makeProduct(overrides: Partial<Product> = {}): Product {
     name: "Linen tote",
     slug: "linen-tote",
     description: "A roomy handmade linen tote",
+    care: null,
+    dimensions: null,
     priceCents: 4800,
     images: [],
     customizable: false,
@@ -66,6 +69,28 @@ describe("priceCentsFor", () => {
     const item = makeItem({ priceCents: 0 });
     const product = makeProduct({ priceCents: 4800 });
     expect(priceCentsFor(item, product)).toBe(0);
+  });
+});
+
+describe("careFor", () => {
+  it("uses the item's own care when the override is set", () => {
+    const item = makeItem({ care: "Hand-wash cold, dry flat" });
+    const product = makeProduct({ care: "Machine wash warm" });
+    expect(careFor(item, product)).toBe("Hand-wash cold, dry flat");
+  });
+
+  it("falls back to the product's care when the item's override is null", () => {
+    const item = makeItem({ care: null });
+    const product = makeProduct({ care: "Machine wash warm" });
+    expect(careFor(item, product)).toBe("Machine wash warm");
+  });
+
+  it("returns null when neither the item nor the product has care", () => {
+    // Null is meaningful here: the product page hides the Care accordion section
+    // rather than showing an empty one, so this case must stay null, not "".
+    const item = makeItem({ care: null });
+    const product = makeProduct({ care: null });
+    expect(careFor(item, product)).toBeNull();
   });
 });
 

@@ -182,6 +182,8 @@ async function seedProducts(categories: Categories) {
       slug: "everyday-zip-pouch",
       description:
         "A roomy lined pouch with a smooth metal zip — for cables, cosmetics, or little treasures.",
+      care: "Cold hand-wash or a gentle machine cycle in a laundry bag; reshape and dry flat. Warm iron on the reverse if needed.",
+      dimensions: "20 cm wide × 13 cm tall. Fully lined, with a metal zip across the top.",
       priceCents: 2200,
       images: ["products/zip-pouch/main"],
       categories: { connect: [{ id: categories.pouches.id }] },
@@ -209,6 +211,8 @@ async function seedProducts(categories: Categories) {
       name: "Quilted Table Runner",
       slug: "quilted-table-runner",
       description: "Hand-quilted cotton runner that dresses a table for everyday or a gathering.",
+      care: "Cold machine wash on gentle; tumble dry low or line dry. Warm iron. The quilting softens with every wash.",
+      dimensions: "140 cm long × 40 cm wide. Hand-quilted cotton with a soft cotton batting.",
       priceCents: 3600,
       images: ["products/table-runner/main"],
       categories: { connect: [{ id: categories.home.id }] },
@@ -230,6 +234,9 @@ async function seedProducts(categories: Categories) {
       slug: "crochet-market-bag",
       description:
         "An airy hand-crocheted net bag that packs flat and stretches around a full grocery haul.",
+      care: "Hand-wash cold and dry flat to keep its shape — crochet stretches when wet, so never hang it to dry.",
+      dimensions:
+        "Sits flat at about 30 × 34 cm and stretches to hold a full grocery load. Handles ~12 cm drop.",
       priceCents: 5200,
       images: ["products/market-bag/main"],
       // Sits in two buckets — a crocheted bag is both Bags and Knitwear.
@@ -256,6 +263,8 @@ async function seedProducts(categories: Categories) {
       name: "Chunky Knit Beanie",
       slug: "chunky-knit-beanie",
       description: "A soft chunky-rib beanie hand-knitted in pure wool.",
+      care: "Hand-wash in cool water with a wool-safe soap, press out the water (don't wring), and dry flat away from heat. Never tumble dry.",
+      dimensions: "One size — the chunky rib stretches to fit most adults (about 52–60 cm).",
       priceCents: 2800,
       images: ["products/beanie/main"],
       categories: {
@@ -300,6 +309,9 @@ async function seedCustomizableTote(materials: Materials, categories: Categories
       slug: "linen-tote-bag",
       description:
         "A sturdy everyday tote in washed linen — carry it plain, or design your own in the configurator.",
+      care: "Cold hand-wash or gentle machine wash; reshape and dry flat. Warm iron while slightly damp. Linen softens and creases with wear — part of its character.",
+      dimensions:
+        "38 cm wide × 40 cm tall × 12 cm deep. Strap drop 26 cm. Front pocket 20 × 16 cm.",
       priceCents: 4800,
       images: ["products/linen-tote/main", "products/linen-tote/detail"],
       customizable: true,
@@ -310,11 +322,23 @@ async function seedCustomizableTote(materials: Materials, categories: Categories
         create: [
           {
             description: "Made up in natural linen with matching handles.",
-            images: ["products/linen-tote/natural"],
+            // Several angles of this one item — exercises the gallery thumbnails + arrows.
+            images: [
+              "products/linen-tote/natural",
+              "products/linen-tote/natural-back",
+              "products/linen-tote/natural-detail",
+            ],
           },
           {
             description: "Sage linen body with charcoal denim handles.",
-            images: ["products/linen-tote/sage"],
+            images: [
+              "products/linen-tote/sage",
+              "products/linen-tote/sage-back",
+              "products/linen-tote/sage-detail",
+            ],
+            // Item-level care OVERRIDE: the denim handles need different first-wash
+            // care than the plain-linen parent — exercises careFor's override path.
+            care: "Wash cold and separately for the first few washes — the charcoal denim handles can bleed onto the sage linen. After that, care for it like the linen tote.",
           },
         ],
       },

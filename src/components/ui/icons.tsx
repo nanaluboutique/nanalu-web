@@ -77,6 +77,22 @@ export function CartIcon(props: IconProps) {
   );
 }
 
+export function ChevronLeftIcon(props: IconProps) {
+  return (
+    <svg width={20} height={20} {...base} {...props}>
+      <path d="M15 18l-6-6 6-6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+export function ChevronRightIcon(props: IconProps) {
+  return (
+    <svg width={20} height={20} {...base} {...props}>
+      <path d="M9 18l6-6-6-6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 export function InstagramIcon(props: IconProps) {
   return (
     <svg width={20} height={20} {...base} {...props}>
