@@ -138,6 +138,36 @@ export type CatalogItem = Awaited<ReturnType<typeof listAvailableItems>>[number]
 export type ProductDetail = NonNullable<Awaited<ReturnType<typeof getProductBySlug>>>;
 
 /**
+ * One ready-made item, flattened to exactly what the interactive product region
+ * (#46) needs to show it: its own photos, its resolved price/care, its fabric text.
+ *
+ * WHY a flattened shape and not the raw item: the product page hands this list to a
+ * "use client" island, and everything crossing that server → browser boundary must
+ * be SERIALIZABLE (plain data — no Prisma internals, no Date). More importantly,
+ * `priceCentsFor` / `careFor` apply the item's nullable override → product fallback,
+ * and they live in server-only code the browser can't call. So we resolve every item
+ * HERE, on the server, and ship down only the finished values.
+ *
+ * Includes SOLD items too (not just available ones) — the selector greys those out
+ * (#46's sold-out follow-up); the filtering is the UI's job, not this function's.
+ */
+export function itemOptionsFor(product: ProductDetail) {
+  return product.readyMadeItems.map((item) => ({
+    id: item.id,
+    available: item.available,
+    images: item.images, // the item's own photos (asset keys); drives the gallery
+    priceCents: priceCentsFor(item, product), // override rule applied once, here
+    care: careFor(item, product), // same fallback rule, for the care text
+    description: item.description, // the item's own fabric & materials text
+  }));
+}
+
+// Derived from the function above, matching this file's convention (see CatalogItem):
+// the function is the single source of the shape, so adding a field there updates the
+// type automatically. `[number]` = "one element of the array itemOptionsFor returns".
+export type ItemOption = ReturnType<typeof itemOptionsFor>[number];
+
+/**
  * Whether the grid should show the "design your own" call-to-action (#43).
  *
  * A customizable product whose ready-made items are ALL sold has no card in the

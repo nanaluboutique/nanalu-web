@@ -1,7 +1,14 @@
 import { describe, expect, it, vi } from "vitest";
 
 import type { Category, Product, ReadyMadeItem } from "@/generated/prisma/client";
-import { careFor, itemsToCards, priceCentsFor, type CatalogItem } from "@/lib/catalog";
+import {
+  careFor,
+  itemOptionsFor,
+  itemsToCards,
+  priceCentsFor,
+  type CatalogItem,
+  type ProductDetail,
+} from "@/lib/catalog";
 
 // catalog.ts imports @/lib/db, which imports `server-only` — a module that THROWS
 // the instant it loads outside a React Server Component (so a browser bundle can
@@ -218,5 +225,98 @@ describe("itemsToCards", () => {
 
   it("returns an empty array for no items", () => {
     expect(itemsToCards([])).toEqual([]);
+  });
+});
+
+// A ProductDetail is the product with its items + categories nested in — the shape
+// getProductBySlug() returns. itemOptionsFor only reads readyMadeItems, so we compose
+// makeProduct with a list of items (categories/customization filled in for the type).
+function makeProductDetail(
+  overrides: Partial<Product> = {},
+  readyMadeItems: ReadyMadeItem[] = [],
+  categories: Category[] = [],
+): ProductDetail {
+  return {
+    ...makeProduct(overrides),
+    categories,
+    readyMadeItems,
+    customization: null,
+  };
+}
+
+describe("itemOptionsFor", () => {
+  it("emits one option per item, in input order, INCLUDING sold ones", () => {
+    // The selector greys sold items rather than hiding them (#46), so this must NOT
+    // filter by `available` — every item comes through, with its flag intact.
+    const product = makeProductDetail({ id: "prod_1" }, [
+      makeItem({ id: "a", available: true }),
+      makeItem({ id: "b", available: false }),
+      makeItem({ id: "c", available: true }),
+    ]);
+    const options = itemOptionsFor(product);
+    expect(options.map((o) => o.id)).toEqual(["a", "b", "c"]);
+    expect(options.map((o) => o.available)).toEqual([true, false, true]);
+  });
+
+  it("resolves each option's price via the override-then-product fallback", () => {
+    const product = makeProductDetail({ id: "prod_1", priceCents: 4800 }, [
+      makeItem({ id: "a", priceCents: 5200 }), // own override wins
+      makeItem({ id: "b", priceCents: null }), // null → the product's price
+    ]);
+    expect(itemOptionsFor(product).map((o) => o.priceCents)).toEqual([5200, 4800]);
+  });
+
+  it("treats a zero price override as a real price, not a missing one", () => {
+    // Same `??` distinction priceCentsFor locks — re-checked here because this is a
+    // separate call site, so a future refactor to `||` would be caught at this layer.
+    const product = makeProductDetail({ id: "prod_1", priceCents: 4800 }, [
+      makeItem({ id: "a", priceCents: 0 }),
+    ]);
+    expect(itemOptionsFor(product)[0].priceCents).toBe(0);
+  });
+
+  it("resolves each option's care via the override-then-product fallback", () => {
+    const product = makeProductDetail({ id: "prod_1", care: "Machine wash warm" }, [
+      makeItem({ id: "a", care: "Hand-wash cold" }), // own override wins
+      makeItem({ id: "b", care: null }), // null → the product's care
+    ]);
+    expect(itemOptionsFor(product).map((o) => o.care)).toEqual([
+      "Hand-wash cold",
+      "Machine wash warm",
+    ]);
+  });
+
+  it("resolves care to null when neither the item nor the product has it", () => {
+    // Null is meaningful: the Care accordion section hides rather than showing empty.
+    const product = makeProductDetail({ id: "prod_1", care: null }, [
+      makeItem({ id: "a", care: null }),
+    ]);
+    expect(itemOptionsFor(product)[0].care).toBeNull();
+  });
+
+  it("carries id, available, images and description through unchanged", () => {
+    // A full-shape lock: exactly these six fields, nothing more (no leaked Prisma
+    // internals like createdAt), so the object stays serializable for the client island.
+    const product = makeProductDetail({ id: "prod_1" }, [
+      makeItem({
+        id: "a",
+        available: false,
+        images: ["products/tote/sage", "products/tote/back"],
+        description: "Sage gingham cotton",
+      }),
+    ]);
+    expect(itemOptionsFor(product)[0]).toEqual({
+      id: "a",
+      available: false,
+      images: ["products/tote/sage", "products/tote/back"],
+      priceCents: 4800, // product default (item override was null)
+      care: null,
+      description: "Sage gingham cotton",
+    });
+  });
+
+  it("returns an empty array when the product has no ready-made items", () => {
+    // A made-to-order-only product — the selector renders nothing off this.
+    expect(itemOptionsFor(makeProductDetail({ id: "prod_1" }, []))).toEqual([]);
   });
 });

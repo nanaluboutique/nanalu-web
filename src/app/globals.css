@@ -345,6 +345,93 @@
     border-color: var(--color-primary);
   }
 
+  /* In-stock item selector on the product page (#46) — the mockup's .iterations
+     block. Ported verbatim; mockup vars mapped to our @theme tokens (--card-bg →
+     --color-card, --line → --color-line, --shadow-sm → --shadow-card, --bg →
+     --color-bg, --sage → --color-sage, --main → --color-primary). The active tile
+     is marked with aria-pressed="true" (the same idiom as .card-swatch, above)
+     instead of a .on class, so visuals and accessibility stay in sync. Sold-item
+     styling (.iter.sold) lands with the sold-out layer (#46 follow-up). */
+  .iterations {
+    background-color: var(--color-card);
+    border: 1px solid var(--color-line);
+    border-radius: 18px;
+    padding: 18px 20px;
+    box-shadow: var(--shadow-card);
+  }
+  .iterations h4 {
+    font-family: var(--font-sans); /* mockup "Karla" = our --font-sans */
+    font-size: 0.78rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--color-ink-soft);
+    margin-bottom: 12px;
+  }
+  .iter-row {
+    display: flex;
+    gap: 12px;
+  }
+  /* A <button> here (the mockup used a <div>), so font-family: inherit pulls in our
+     Karla instead of the browser's default button font for the "Piece 01" label. */
+  .iter {
+    width: 76px;
+    padding: 0;
+    font-family: inherit;
+    cursor: pointer;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 2px solid transparent;
+    background-color: var(--color-bg);
+    transition:
+      border-color 0.15s,
+      transform 0.15s;
+    position: relative;
+  }
+  .iter:hover {
+    transform: translateY(-3px);
+    border-color: var(--color-sage);
+  }
+  .iter[aria-pressed="true"] {
+    border-color: var(--color-primary);
+  }
+  .iter .ph {
+    height: 64px;
+  }
+  .iter span {
+    display: block;
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-align: center;
+    padding: 4px 0;
+    color: var(--color-ink-soft);
+  }
+
+  /* Sold item (#46 sold-out follow-up) — the mockup's .iter.sold: a translucent white
+     veil with the word "sold" over the photo (inset leaves the bottom 22px, so the
+     "Piece 03" label below stays clear). The tile is rendered <button disabled> (no buy
+     path), so :disabled suppresses the hover lift/border. The veil word uses
+     --color-primary (the mockup's --main); the mockup's magenta label tint is dropped —
+     the veil already signals sold — so no new colour token is needed. */
+  .iter:disabled {
+    cursor: default;
+  }
+  .iter:disabled:hover {
+    transform: none;
+    border-color: transparent;
+  }
+  .iter.sold::after {
+    content: "sold";
+    position: absolute;
+    inset: 0 0 22px 0;
+    background: rgb(255 255 255 / 0.55);
+    display: grid;
+    place-items: center;
+    font: 700 0.7rem var(--font-sans);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--color-primary);
+  }
+
   /* — Navbar — ported from the mockup's nav CSS, vars mapped to our tokens.
      (Structure/responsive layout is handled with utilities in header.tsx;
      these are the styled, non-trivial bits.) */
