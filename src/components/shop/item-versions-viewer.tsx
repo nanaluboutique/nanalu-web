@@ -73,9 +73,15 @@ export function ItemVersionsViewer({
   // (re-renders the region) AND rewrite the URL to ?item=<id> so the link is shareable.
   // replaceState (not pushState): swaps the address in place — no new Back-button entry,
   // so Back leaves the page instead of stepping back through every item you tapped.
+  //
+  // Merge into the EXISTING query rather than overwriting it: build from the current
+  // params and set only `item`, so external params the shopper arrived with (utm_source,
+  // fbclid, …) survive the tap instead of being clobbered by a bare `?item=<id>`.
   function handleSelect(itemId: string) {
     setSelectedItemId(itemId);
-    window.history.replaceState(null, "", `?item=${itemId}`);
+    const params = new URLSearchParams(window.location.search);
+    params.set("item", itemId);
+    window.history.replaceState(null, "", `?${params}`);
   }
 
   return (

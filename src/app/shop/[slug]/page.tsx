@@ -98,6 +98,12 @@ export default async function ProductPage({
           the grid's columns directly (a Fragment adds no DOM node of its own). */}
       <div className="grid grid-cols-1 items-start gap-12 pb-5 min-[981px]:grid-cols-[1.05fr_0.95fr]">
         <ItemVersionsViewer
+          // Defensive: reset the viewer's per-item state when the product changes. Next 16
+          // currently remounts this on a /shop/[slug] param change, so the stale-selection
+          // bug does not manifest today (verified) — but that remount behaviour isn't a
+          // contract we control, so keying on the product makes the reset explicit and
+          // upgrade-proof rather than relying on the framework to do it for us.
+          key={product.slug}
           productName={product.name}
           customizable={product.customizable}
           productDescription={product.description}

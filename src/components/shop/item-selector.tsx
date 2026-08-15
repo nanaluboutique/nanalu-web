@@ -36,8 +36,9 @@ export function ItemSelector({
       <h4>{hasAvailable ? "In stock now — one of a kind" : "One of a kind"}</h4>
       <div className="iter-row" role="group" aria-label="Pieces in this style">
         {options.map((option, index) => {
-          // Only an available tile can be the active/selected one.
-          const isSelected = option.available && option.id === selectedItemId;
+          // selectedItemId is always an available item's id (or null), so a sold tile's
+          // id can never match — no need to re-check option.available here.
+          const isSelected = option.id === selectedItemId;
           // Shopper-facing label uses the human word "Piece" (internals stay "item"),
           // numbered by position across ALL pieces: "Piece 01", "Piece 02", … 0-padded.
           const label = `Piece ${String(index + 1).padStart(2, "0")}`;
