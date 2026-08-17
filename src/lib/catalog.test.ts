@@ -2,13 +2,17 @@ import { describe, expect, it, vi } from "vitest";
 
 import type { Category, Product, ReadyMadeItem } from "@/generated/prisma/client";
 import {
+  applyShopQuery,
   careFor,
+  categoryOptions,
   itemOptionsFor,
   itemsToCards,
+  priceCeilingEuros,
   priceCentsFor,
   type CatalogItem,
   type ProductDetail,
 } from "@/lib/catalog";
+import type { ShopQuery } from "@/lib/shop-query";
 
 // catalog.ts imports @/lib/db, which imports `server-only` — a module that THROWS
 // the instant it loads outside a React Server Component (so a browser bundle can
@@ -318,5 +322,179 @@ describe("itemOptionsFor", () => {
   it("returns an empty array when the product has no ready-made items", () => {
     // A made-to-order-only product — the selector renders nothing off this.
     expect(itemOptionsFor(makeProductDetail({ id: "prod_1" }, []))).toEqual([]);
+  });
+});
+
+// A parsed ShopQuery with every field at its default; each test overrides only what
+// it exercises (mirrors parseShopQuery's defaults, so tests read like a real URL).
+function makeQuery(overrides: Partial<ShopQuery> = {}): ShopQuery {
+  return {
+    category: null,
+    ready: true,
+    customizable: true,
+    maxPriceCents: null,
+    sort: "newest",
+    ...overrides,
+  };
+}
+
+// Reusable category rows for the filter tests.
+const bags = makeCategory({ id: "cat_bags", slug: "bags-totes", name: "Bags & totes" });
+const knitwear = makeCategory({ id: "cat_knit", slug: "knitwear", name: "Knitwear" });
+const pouches = makeCategory({ id: "cat_pouch", slug: "pouches", name: "Pouches" });
+
+describe("applyShopQuery", () => {
+  it("returns all items in input order when nothing is filtered", () => {
+    const items = [
+      makeCatalogItem({ id: "a", productId: "p1" }, { id: "p1" }),
+      makeCatalogItem({ id: "b", productId: "p2" }, { id: "p2" }),
+    ];
+    expect(applyShopQuery(items, makeQuery()).map((i) => i.id)).toEqual(["a", "b"]);
+  });
+
+  it("keeps only items whose product carries the chosen category", () => {
+    const items = [
+      makeCatalogItem({ id: "a", productId: "p1" }, { id: "p1" }, [bags]),
+      makeCatalogItem({ id: "b", productId: "p2" }, { id: "p2" }, [knitwear]),
+    ];
+    expect(applyShopQuery(items, makeQuery({ category: "knitwear" })).map((i) => i.id)).toEqual([
+      "b",
+    ]);
+  });
+
+  describe("availability (an OR of the two checkboxes)", () => {
+    // Every grid item is in stock, so the meaningful narrowing is "customizable only".
+    const custom = makeCatalogItem({ id: "c", productId: "p1" }, { id: "p1", customizable: true });
+    const plain = makeCatalogItem({ id: "n", productId: "p2" }, { id: "p2", customizable: false });
+    const items = [custom, plain];
+
+    it("both checked → everything", () => {
+      expect(applyShopQuery(items, makeQuery()).map((i) => i.id)).toEqual(["c", "n"]);
+    });
+
+    it("ready off, customizable on → only customizable items", () => {
+      expect(
+        applyShopQuery(items, makeQuery({ ready: false, customizable: true })).map((i) => i.id),
+      ).toEqual(["c"]);
+    });
+
+    it("ready on, customizable off → still everything (ready already includes all)", () => {
+      expect(
+        applyShopQuery(items, makeQuery({ ready: true, customizable: false })).map((i) => i.id),
+      ).toEqual(["c", "n"]);
+    });
+
+    it("both unchecked → nothing", () => {
+      expect(applyShopQuery(items, makeQuery({ ready: false, customizable: false }))).toEqual([]);
+    });
+  });
+
+  it("drops items dearer than the cap, resolving each price via the override rule", () => {
+    const items = [
+      // null override → the product's €24
+      makeCatalogItem(
+        { id: "cheap", productId: "p1", priceCents: null },
+        { id: "p1", priceCents: 2400 },
+      ),
+      // €52 override beats the product's €48
+      makeCatalogItem(
+        { id: "dear", productId: "p2", priceCents: 5200 },
+        { id: "p2", priceCents: 4800 },
+      ),
+    ];
+    expect(applyShopQuery(items, makeQuery({ maxPriceCents: 3000 })).map((i) => i.id)).toEqual([
+      "cheap",
+    ]);
+  });
+
+  it("sorts by resolved price ascending and descending", () => {
+    const items = [
+      makeCatalogItem({ id: "mid", productId: "p1", priceCents: 3500 }, { id: "p1" }),
+      makeCatalogItem({ id: "low", productId: "p2", priceCents: 2400 }, { id: "p2" }),
+      makeCatalogItem({ id: "high", productId: "p3", priceCents: 5200 }, { id: "p3" }),
+    ];
+    expect(applyShopQuery(items, makeQuery({ sort: "price-asc" })).map((i) => i.id)).toEqual([
+      "low",
+      "mid",
+      "high",
+    ]);
+    expect(applyShopQuery(items, makeQuery({ sort: "price-desc" })).map((i) => i.id)).toEqual([
+      "high",
+      "mid",
+      "low",
+    ]);
+  });
+
+  it("keeps newest-first order among equal prices (stable sort)", () => {
+    const items = [
+      makeCatalogItem({ id: "first", productId: "p1", priceCents: 3000 }, { id: "p1" }),
+      makeCatalogItem({ id: "second", productId: "p2", priceCents: 3000 }, { id: "p2" }),
+    ];
+    expect(applyShopQuery(items, makeQuery({ sort: "price-asc" })).map((i) => i.id)).toEqual([
+      "first",
+      "second",
+    ]);
+  });
+
+  it("does not mutate the caller's array when sorting", () => {
+    const items = [
+      makeCatalogItem({ id: "mid", productId: "p1", priceCents: 3500 }, { id: "p1" }),
+      makeCatalogItem({ id: "low", productId: "p2", priceCents: 2400 }, { id: "p2" }),
+    ];
+    applyShopQuery(items, makeQuery({ sort: "price-asc" }));
+    expect(items.map((i) => i.id)).toEqual(["mid", "low"]); // original order intact
+  });
+});
+
+describe("categoryOptions", () => {
+  it("emits one row per present category with its count, sorted by name", () => {
+    const items = [
+      makeCatalogItem({ id: "a", productId: "p1" }, { id: "p1" }, [pouches]),
+      makeCatalogItem({ id: "b", productId: "p2" }, { id: "p2" }, [bags]),
+      makeCatalogItem({ id: "c", productId: "p3" }, { id: "p3" }, [bags]),
+    ];
+    // Knitwear never appears — no in-stock item carries it. Alphabetical by name.
+    expect(categoryOptions(items)).toEqual([
+      { slug: "bags-totes", name: "Bags & totes", count: 2 },
+      { slug: "pouches", name: "Pouches", count: 1 },
+    ]);
+  });
+
+  it("counts an item in EVERY category it carries (M:N overlap)", () => {
+    const items = [
+      makeCatalogItem({ id: "a", productId: "p1" }, { id: "p1" }, [bags, knitwear]),
+      makeCatalogItem({ id: "b", productId: "p2" }, { id: "p2" }, [knitwear]),
+    ];
+    expect(categoryOptions(items)).toEqual([
+      { slug: "bags-totes", name: "Bags & totes", count: 1 },
+      { slug: "knitwear", name: "Knitwear", count: 2 }, // both items
+    ]);
+  });
+
+  it("returns an empty array for no items", () => {
+    expect(categoryOptions([])).toEqual([]);
+  });
+});
+
+describe("priceCeilingEuros", () => {
+  const withPrice = (cents: number) =>
+    makeCatalogItem({ id: "x", productId: "p1", priceCents: cents }, { id: "p1" });
+
+  it("rounds the priciest item up to the nearest 10 euros", () => {
+    expect(priceCeilingEuros([withPrice(4800)])).toBe(50); // €48 → €50
+    expect(priceCeilingEuros([withPrice(8600)])).toBe(90); // €86 → €90
+  });
+
+  it("leaves an exact multiple of 10 unchanged", () => {
+    expect(priceCeilingEuros([withPrice(5000)])).toBe(50);
+  });
+
+  it("uses the priciest item across the list", () => {
+    expect(priceCeilingEuros([withPrice(2400), withPrice(8600), withPrice(3600)])).toBe(90);
+  });
+
+  it("floors at 10 for an empty or very cheap catalog", () => {
+    expect(priceCeilingEuros([])).toBe(10); // reduce never runs → 0 → floored to 10
+    expect(priceCeilingEuros([withPrice(500)])).toBe(10); // €5 → 10
   });
 });

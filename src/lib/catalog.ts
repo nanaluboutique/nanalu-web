@@ -15,6 +15,7 @@
 
 import type { Product, ReadyMadeItem } from "@/generated/prisma/client";
 import { getPrisma } from "@/lib/db";
+import type { ShopQuery } from "@/lib/shop-query";
 
 /**
  * Every item currently for sale, newest first — one row per catalog card.
@@ -249,6 +250,121 @@ export function itemsToCards(items: CatalogItem[]): ShopCard[] {
     // Non-null: every item pushed its own product's array above.
     itemSiblings: itemsByProduct.get(item.productId)!,
   }));
+}
+
+/**
+ * Filter and sort the grid's items by the shopper's chosen ShopQuery (#44).
+ *
+ * PURE — takes the already-fetched item list (from listAvailableItems) plus a parsed
+ * ShopQuery, and returns a new, narrowed + reordered array. No DB, no React, so it
+ * unit-tests without either; the page then runs itemsToCards on the result.
+ *
+ * WHY filter here in memory rather than in the SQL WHERE: an item's real price is
+ * `priceCentsFor(item, product)` — its nullable override OR the parent's — and that rule
+ * lives in ONE place (this file). Pushing price filter/sort into Prisma would re-encode
+ * that override as a query, the exact duplication CLAUDE.md forbids. The catalog is small
+ * (listRelatedCards ranks in memory for the same reason), so one broad read + in-memory
+ * work is both correct and simpler, and it keeps the whole filter set unit-testable.
+ */
+export function applyShopQuery(items: CatalogItem[], query: ShopQuery): CatalogItem[] {
+  const matches = items.filter((item) => {
+    // Category: when one is chosen, keep only items whose product carries it. The link is
+    // M:N, so we look for ANY category on the parent whose slug matches.
+    if (query.category && !item.product.categories.some((cat) => cat.slug === query.category)) {
+      return false;
+    }
+
+    // Availability is an OR of two independent checkboxes (docs/data-model.md):
+    //   Ready to ship → the item is in stock (`available`) — true of every grid item here
+    //   Customizable  → the parent product offers the configurator
+    // Keep the item if it matches EITHER checked box. Because every grid item is already
+    // in stock, unchecking "Ready to ship" (leaving "Customizable") is the ONE move that
+    // narrows the grid — to customizable items only. Both checked → everything; both
+    // unchecked → nothing. We still AND in `item.available` rather than assume it, so the
+    // rule stays correct if this is ever handed a list that includes sold items.
+    const matchesAvailability =
+      (query.ready && item.available) || (query.customizable && item.product.customizable);
+    if (!matchesAvailability) return false;
+
+    // Price cap: drop items dearer than the chosen cap, compared in CENTS through the one
+    // price rule. null = slider at its max = no cap, so everything passes.
+    if (query.maxPriceCents !== null && priceCentsFor(item, item.product) > query.maxPriceCents) {
+      return false;
+    }
+
+    return true;
+  });
+
+  // "Newest" needs no sorting: `items` already arrives newest-first from listAvailableItems
+  // (createdAt desc, id desc), and .filter preserves encounter order. Only price re-sorts.
+  if (query.sort === "newest") return matches;
+
+  // Array.sort is STABLE (ES2019+), so items of equal price keep their newest-first order —
+  // a sensible secondary ordering for free. `matches` is a fresh array from .filter, so
+  // sorting it in place never touches the caller's list (this function stays pure).
+  const direction = query.sort === "price-asc" ? 1 : -1;
+  return matches.sort(
+    (a, b) => direction * (priceCentsFor(a, a.product) - priceCentsFor(b, b.product)),
+  );
+}
+
+/**
+ * One selectable category in the filter sidebar (#44): its display name, its URL slug,
+ * and how many available items carry it — the "Pouches 5" tally the mockup shows.
+ */
+export type CategoryOption = { slug: string; name: string; count: number };
+
+/**
+ * The category rows for the filter sidebar (#44), derived from the SAME item list the
+ * grid uses — so a category shows up only when something in it is actually for sale (no
+ * empty "Knitwear 0" rows), and its name/slug come straight through the relation.
+ *
+ * PURE — no DB, no React. Because a product can sit in several categories (M:N: a knit
+ * bag is Bags AND Knitwear), one item adds +1 to EACH of its categories; the counts
+ * overlap on purpose, the way any tag tally does.
+ *
+ * Counts are over ALL in-stock items, independent of the currently-applied filters, so
+ * the sidebar always shows the full breakdown — a count can therefore exceed what a given
+ * availability/price filter leaves on screen. (Making the counts track the other active
+ * filters is a later refinement; this keeps piece 2 simple and matches the mockup.)
+ *
+ * Sorted alphabetically by name for a stable, predictable order — Category has no manual
+ * sort column, and localeCompare keeps "&" / accents ordered the way a reader expects.
+ */
+export function categoryOptions(items: CatalogItem[]): CategoryOption[] {
+  const bySlug = new Map<string, CategoryOption>();
+
+  for (const item of items) {
+    for (const category of item.product.categories) {
+      const existing = bySlug.get(category.slug);
+      if (existing) {
+        existing.count += 1;
+      } else {
+        bySlug.set(category.slug, { slug: category.slug, name: category.name, count: 1 });
+      }
+    }
+  }
+
+  return [...bySlug.values()].sort((a, b) => a.name.localeCompare(b.name));
+}
+
+/**
+ * The top of the price slider's range, in whole euros (#44). Derived from the priciest
+ * available item (through the one price rule), rounded UP to the nearest 10 so the slider
+ * ends on a tidy number — a €86 top item gives a €90 slider. Floored at 10 so an empty or
+ * very cheap catalog still hands the slider a sane span instead of 0.
+ *
+ * Rounds UP, never down, because the slider treats "dragged all the way to this ceiling"
+ * as no cap at all — so the ceiling must sit at or above every item's real price, or the
+ * dearest pieces could never be included.
+ */
+export function priceCeilingEuros(items: CatalogItem[]): number {
+  const maxCents = items.reduce(
+    (highest, item) => Math.max(highest, priceCentsFor(item, item.product)),
+    0,
+  );
+  const euros = Math.ceil(maxCents / 100);
+  return Math.max(10, Math.ceil(euros / 10) * 10);
 }
 
 /**

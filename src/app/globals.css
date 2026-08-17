@@ -361,6 +361,10 @@
   }
   .iterations h4 {
     font-family: var(--font-sans); /* mockup "Karla" = our --font-sans */
+    /* Explicit 700 for the same reason as .filters h4: the mockup's bare <h4> is
+       browser-bold, but Tailwind's Preflight makes headings inherit the normal body
+       weight, so this label rendered too thin. */
+    font-weight: 700;
     font-size: 0.78rem;
     letter-spacing: 0.12em;
     text-transform: uppercase;
@@ -529,5 +533,182 @@
     padding: 0 2px 16px;
     color: var(--color-ink-soft);
     font-size: 0.94rem;
+  }
+
+  /* — Catalog filters + toolbar (#44) — ported from the mockup's .catalog-grid /
+     .filters / .toolbar / .active-chips CSS, mockup vars mapped to our tokens
+     (--card-bg → --color-card, --line → --color-line, --shadow-sm → --shadow-card,
+     --main → --color-primary, --main-tint → --color-primary-tint, --ink →
+     --color-ink, --ink-soft → --color-ink-soft, --sage-tint → --color-sage-tint,
+     --chip-ink → --color-chip-ink). The mockup's Fabric-colour swatch filter is
+     intentionally omitted — that filter is deferred (docs/data-model.md).
+
+     Two structural swaps from the mockup, for accessibility + server-side filtering:
+       • category rows are <Link>s (real navigation, no JS), so the mockup's
+         `.filter-list li button.on` becomes `.filter-list a`, and the active row is
+         marked aria-current="true" and styled off that (like .nav-link), not `.on`.
+       • a chip's × is a <Link> that drops one param, so it's an <a>, not a <button>. */
+
+  /* Two-column shell: filter rail + grid. Mobile-first — one column by default (the
+     rail stacks above the grid), two columns from 981px up (matching the grid's own
+     min-[981px] breakpoint in page.tsx); the rail is sticky only when beside the grid. */
+  .catalog-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 34px;
+    padding: 22px 0 10px;
+    align-items: start;
+  }
+  @media (min-width: 981px) {
+    .catalog-grid {
+      grid-template-columns: 232px 1fr;
+    }
+    .filters {
+      position: sticky;
+      top: 78px;
+    }
+  }
+
+  .filters {
+    background-color: var(--color-card);
+    border: 1px solid var(--color-line);
+    border-radius: 20px;
+    padding: 22px;
+    box-shadow: var(--shadow-card);
+  }
+  .filters h4 {
+    font-family: var(--font-sans); /* mockup "Karla" = our --font-sans */
+    /* Explicit 700 — the mockup's bare <h4> gets the browser's bold default, but
+       Tailwind's Preflight makes headings inherit the (normal) body weight, which
+       rendered these section labels too thin. */
+    font-weight: 700;
+    font-size: 0.76rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--color-ink-soft);
+    margin: 18px 0 10px;
+  }
+  .filters h4:first-child {
+    margin-top: 0;
+  }
+
+  /* Category list — each row a <Link>; active row via aria-current="true". */
+  .filter-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    /* The mockup's <ul> keeps the browser's default left indent (~40px), which sets the
+       category rows in from the section headers; Tailwind's Preflight resets that to 0,
+       so we restore it explicitly to match. Only the category list is indented — the
+       checkboxes and slider below are direct children of .filters, not this ul. */
+    padding-left: 40px;
+  }
+  .filter-list a {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 7px 11px;
+    border-radius: 9px;
+    font-weight: 600;
+    font-size: 0.92rem;
+    color: var(--color-ink);
+    transition: background-color 0.15s;
+  }
+  .filter-list a:hover {
+    background-color: var(--color-primary-tint);
+  }
+  .filter-list a[aria-current="true"] {
+    background-color: var(--color-primary);
+    color: var(--color-on-primary);
+  }
+  .filter-list a .n {
+    font-size: 0.8rem;
+    opacity: 0.6;
+  }
+
+  /* Availability checkboxes — mockup .check. */
+  .check {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 6px 0;
+    font-weight: 600;
+    font-size: 0.92rem;
+  }
+  .check input {
+    accent-color: var(--color-primary);
+    width: 16px;
+    height: 16px;
+  }
+
+  /* Price section — the mockup styled these inline; lifted here as classes. The range
+     fills the rail and tints its track/thumb with the brand primary; the labels row
+     shows the min on the left, the live cap on the right. */
+  .price-range {
+    width: 100%;
+    accent-color: var(--color-primary);
+  }
+  .price-range-labels {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 4px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--color-ink-soft);
+  }
+
+  /* Toolbar above the grid: result count · active chips · sort (pushed right).
+     flex-wrap added (not in the desktop mockup) so chips wrap instead of overflowing
+     on narrow screens. */
+  .toolbar {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 18px;
+    flex-wrap: wrap;
+  }
+  .toolbar .count {
+    color: var(--color-ink-soft);
+    font-weight: 600;
+    font-size: 0.92rem;
+  }
+  .toolbar .sort {
+    margin-left: auto;
+  }
+  .sort select {
+    font-family: var(--font-sans);
+    font-weight: 600;
+    font-size: 0.9rem;
+    padding: 9px 14px;
+    border-radius: var(--radius-pill);
+    border: 1.5px solid var(--color-line);
+    background-color: var(--color-card);
+    color: var(--color-ink);
+  }
+
+  /* Active-filter chips — each with a × <Link> that clears just that one filter. */
+  .active-chips {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .active-chips .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background-color: var(--color-sage-tint);
+    color: var(--color-chip-ink);
+    font-weight: 700;
+    font-size: 0.8rem;
+    padding: 5px 12px;
+    border-radius: var(--radius-pill);
+  }
+  .active-chips .chip a {
+    display: inline-flex;
+    color: inherit;
+    font-size: 1rem;
+    line-height: 1;
   }
 }
