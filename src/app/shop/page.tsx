@@ -2,8 +2,21 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { Container } from "@/components/layout/container";
+import { ActiveFilterChips } from "@/components/shop/active-filter-chips";
+import { AvailabilityFilter } from "@/components/shop/availability-filter";
+import { CategoryFilter } from "@/components/shop/category-filter";
+import { PriceFilter } from "@/components/shop/price-filter";
 import { ProductCard } from "@/components/shop/product-card";
-import { hasCustomizableWithoutStock, itemsToCards, listAvailableItems } from "@/lib/catalog";
+import { SortDropdown } from "@/components/shop/sort-dropdown";
+import {
+  applyShopQuery,
+  categoryOptions,
+  hasCustomizableWithoutStock,
+  itemsToCards,
+  listAvailableItems,
+  priceCeilingEuros,
+} from "@/lib/catalog";
+import { parseShopQuery } from "@/lib/shop-query";
 
 export const metadata: Metadata = { title: "Shop" };
 
@@ -15,23 +28,53 @@ export const metadata: Metadata = { title: "Shop" };
 // build database-free (and the catalog fresh when admin edits land later).
 export const dynamic = "force-dynamic";
 
-/*
- * The /shop grid (#43). One card per available ready-made item (see
- * docs/data-model.md — one card per item, not per product). Filters, sort, and
- * the toolbar are a separate slice (#44); this page is just the grid + the
- * out-of-stock "design your own" call-to-action.
- *
- * Server component: it runs the catalog reads directly. The two reads are
- * independent, so we await them together. `itemsToCards` (pure) reshapes the
- * flat item list into per-card props; <ProductCard> (client) handles the
- * photo-swap interaction.
+/**
+ * Next hands searchParams as `{ key: string | string[] | undefined }`, but parseShopQuery
+ * wants a URLSearchParams. Convert once here. Every shop param is single-valued; if a key
+ * is ever repeated in the URL (`?category=a&category=b`), we take the first — one filter,
+ * one value.
  */
-export default async function ShopPage() {
+function toSearchParams(raw: Record<string, string | string[] | undefined>): URLSearchParams {
+  const params = new URLSearchParams();
+  for (const [key, value] of Object.entries(raw)) {
+    if (typeof value === "string") {
+      params.set(key, value);
+    } else if (Array.isArray(value) && value[0] !== undefined) {
+      params.set(key, value[0]);
+    }
+  }
+  return params;
+}
+
+/*
+ * The /shop grid + filters (#43, #44). One card per available ready-made item (see
+ * docs/data-model.md — one card per item, not per product).
+ *
+ * Server component: it reads the URL (searchParams), fetches the catalog once, then
+ * filters/sorts IN MEMORY via the pure catalog helpers. The URL is the whole filter state,
+ * so a filtered view is shareable and works with the Back button; the interactive controls
+ * (sort, availability, price) are small client islands that only rewrite the URL, while the
+ * category rows and chips are plain server-rendered links.
+ */
+export default async function ShopPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const params = toSearchParams(await searchParams);
+  const query = parseShopQuery(params);
+
+  // One broad read (all available + active items), then everything else is derived from it.
   const [items, showCustomizeCta] = await Promise.all([
     listAvailableItems(),
     hasCustomizableWithoutStock(),
   ]);
-  const cards = itemsToCards(items);
+
+  const cards = itemsToCards(applyShopQuery(items, query)); // filtered + sorted → cards
+  const categories = categoryOptions(items); // sidebar rows (from the FULL list)
+  const ceilingEuros = priceCeilingEuros(items); // price slider's top end
+  const totalCount = items.length; // "All pieces N"
+  const resultCount = cards.length; // toolbar "N pieces"
 
   return (
     <Container className="pb-16">
@@ -52,18 +95,41 @@ export default async function ShopPage() {
         </p>
       </div>
 
-      {cards.length > 0 ? (
-        <p className="text-ink-soft mt-6 mb-4 text-[0.92rem] font-semibold">
-          {cards.length} {cards.length === 1 ? "piece" : "pieces"}
-        </p>
-      ) : (
-        <p className="text-ink-soft mt-10">Nothing in stock right now — please check back soon.</p>
-      )}
+      <div className="catalog-grid">
+        <aside className="filters">
+          <CategoryFilter
+            categories={categories}
+            activeCategory={query.category}
+            totalCount={totalCount}
+            current={params}
+          />
+          <AvailabilityFilter />
+          <PriceFilter ceilingEuros={ceilingEuros} />
+        </aside>
 
-      <div className="grid grid-cols-2 gap-[22px] min-[981px]:grid-cols-3">
-        {cards.map((card) => (
-          <ProductCard key={card.defaultItemId} card={card} />
-        ))}
+        <div className="catalog-main">
+          <div className="toolbar">
+            <span className="count">
+              {resultCount} {resultCount === 1 ? "piece" : "pieces"}
+            </span>
+            <ActiveFilterChips query={query} categories={categories} current={params} />
+            <SortDropdown />
+          </div>
+
+          {resultCount > 0 ? (
+            <div className="grid grid-cols-2 gap-[22px] min-[981px]:grid-cols-3">
+              {cards.map((card) => (
+                <ProductCard key={card.defaultItemId} card={card} />
+              ))}
+            </div>
+          ) : (
+            <p className="text-ink-soft mt-4">
+              {totalCount === 0
+                ? "Nothing in stock right now — please check back soon."
+                : "No pieces match these filters. Try clearing one above."}
+            </p>
+          )}
+        </div>
       </div>
 
       {showCustomizeCta && (
