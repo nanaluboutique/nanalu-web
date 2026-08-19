@@ -76,7 +76,10 @@ describe("ItemVersionsViewer", () => {
 
     fireEvent.click(screen.getByRole("button", { name: /Show Piece 02/ }));
 
-    // The four per-item values follow the selection to item-b...
+    // The per-item values follow the selection to item-b: gallery photo, price,
+    // fabric, care. The main gallery image renders with alt={productName}, and the
+    // AssetImage stub surfaces the asset key as src, so this reads the shown photo.
+    expect(screen.getByAltText("Linen tote")).toHaveAttribute("src", "b/main");
     expect(screen.getByText("€52.00")).toBeInTheDocument();
     expect(screen.queryByText("€48.00")).not.toBeInTheDocument();
     expect(screen.getByText("Fabric B")).toBeInTheDocument();
