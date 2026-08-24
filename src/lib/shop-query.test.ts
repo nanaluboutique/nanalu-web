@@ -9,6 +9,7 @@ describe("parseShopQuery", () => {
   it("applies every default for an empty query", () => {
     expect(parse("")).toEqual({
       category: null,
+      colour: null,
       ready: true,
       customizable: true,
       maxPriceCents: null,
@@ -19,6 +20,11 @@ describe("parseShopQuery", () => {
   it("reads a category slug, and treats an empty one as no filter", () => {
     expect(parse("category=pouches").category).toBe("pouches");
     expect(parse("category=").category).toBeNull();
+  });
+
+  it("reads a colour slug, and treats an empty one as no filter", () => {
+    expect(parse("colour=sage").colour).toBe("sage");
+    expect(parse("colour=").colour).toBeNull();
   });
 
   it("checkboxes default ON, and only `=0` turns them off", () => {

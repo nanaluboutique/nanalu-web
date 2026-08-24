@@ -366,24 +366,26 @@ Not built now — noted so the shape is ready and we don't lose the idea. All ar
 **additive** (new table/field + migration, no restructuring), so cheap to add later —
 especially while the catalog is seed-data only (nothing to backfill).
 
-| Idea                                                            | What it needs                                                                                                                                                                                                                                                     | Why deferred                                                                                                                   |
-| --------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| **Filter by fabric _type_** (linen, cotton, wool — broad fibre) | a new `FabricType` tag table, **M:N** to Product (same pattern as Category). _Not_ derived from the `Material` entity — it's a coarse bucket, its own axis                                                                                                        | not in the mockup's filter list; no consumer yet                                                                               |
-| **Filter by fabric _colour_** (the swatch filter in the mockup) | a **structured `Colour` tag on `ReadyMadeItem`** (each item has its colour(s)). The product grid filters parents _through_ the nesting via `readyMadeItems: { some: { colours: { some: … } } }`. **Double duty:** same data powers the **card swatch dots** below | Phase 2 filtering **shipped in #44 without it**; tracked in #68 — shape is known (lives on the item, not free text)            |
-| **"Most loved" sort**                                           | ~~a favourites count from a `User ⇄ Product` (M:N) relation~~ — the relation **now exists** (#29, `User.favourites`); only the sort query/UI remains, in Phase 2                                                                                                  | relation delivered; #44 shipped the sort UI without it — no favourites _data_ until accounts (Phase 6), so nothing to rank yet |
+| Idea                                                                                     | What it needs                                                                                                                                                                                                                                                                        | Why deferred                                                                                                                                                                                 |
+| ---------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Filter by fabric _type_** (linen, cotton, wool — broad fibre)                          | a new `FabricType` tag table, **M:N** to Product (same pattern as Category). _Not_ derived from the `Material` entity — it's a coarse bucket, its own axis                                                                                                                           | not in the mockup's filter list; no consumer yet                                                                                                                                             |
+| ~~**Filter by fabric _colour_**~~ (the swatch filter in the mockup) — **SHIPPED in #68** | a **structured `Colour` tag on `ReadyMadeItem`** (name + slug + hex; each item has its colour(s)), M:N like Category. The grid narrows on it in memory (`item.colours.some(c => c.slug === …)`, the twin of `colours: { some: … }`), and `colourOptions` builds the sidebar swatches | done — Phase 2 filtering shipped in #44 without it, the colour filter followed in #68. The mockup's **card swatch dots were dropped** (decided against — see Catalog card interaction below) |
+| **"Most loved" sort**                                                                    | ~~a favourites count from a `User ⇄ Product` (M:N) relation~~ — the relation **now exists** (#29, `User.favourites`); only the sort query/UI remains, in Phase 2                                                                                                                     | relation delivered; #44 shipped the sort UI without it — no favourites _data_ until accounts (Phase 6), so nothing to rank yet                                                               |
 
-### Catalog card interaction (planned, front-end only)
+### Catalog card interaction — photo thumbnails (card swatch _dots_ dropped)
 
 Discoverability is inherently handled now — every ready-made item is already its own card.
-Swatch dots become an _optional nicety_ on top:
+The **card photo-swap** shipped in #59: a card shows its sibling items as **photo thumbnails**,
+and clicking one swaps the card's image (+ price + link) inline.
 
-- **Swatch dots on a card** = the sibling items of the same product; each dot's colour
-  comes from the deferred `Colour` tag above.
-- **Clicking a swatch swaps the card's image inline** (no navigation) to that sibling's
-  photo — pure React state, using each item's existing `images`. No schema impact.
+**The mockup's colour _dots_ on a card were considered and dropped** (#68): even though the
+`Colour` tag now exists and would make them cheap (pure front-end, reusing the #59 swap), a
+**photo thumbnail previews the actual piece**, which is more useful on a boutique card than a
+flat colour cue — so the cards keep their photos and colour lives **only** as the sidebar
+filter. Not "deferred"; a settled call. (Reopen only if the thumbnails ever prove too busy.)
 
 > Reminder: the mockup's filter sidebar is **Category · Availability · Fabric colour ·
 > Price**, and the sort dropdown includes **Newest · Price · Most loved**. Category,
 > Availability (`customizable` + "has ready-made items"), Price, and Newest **shipped in
-> #44** (the Phase 2 filtering/sort feature); Fabric colour (#68) and Most loved (Phase 6)
-> remain deferred above.
+> #44** (the Phase 2 filtering/sort feature); **Fabric colour shipped in #68** (the mockup's
+> card swatch _dots_ were dropped — see above). Only **Most loved** (Phase 6) remains deferred.

@@ -57,6 +57,7 @@ async function reset() {
   await prisma.readyMadeItem.deleteMany();
   await prisma.product.deleteMany();
   await prisma.category.deleteMany();
+  await prisma.colour.deleteMany();
   await prisma.material.deleteMany();
   await prisma.user.deleteMany();
 }
@@ -167,14 +168,37 @@ async function seedCategories() {
   };
 }
 
+// ─── Fabric colours (browse tag on ready-made pieces, M:N) ───────────────────
+// A small controlled vocabulary — like Categories, but tagged on the PIECE, not
+// the Product (#68). Each carries a display hex for the sidebar swatch filter.
+// Distinct from Material(kind = COLOUR): those are configurator paint with stock;
+// these are cheap descriptive labels, nothing reserved.
+async function seedColours() {
+  const make = (name: string, slug: string, hex: string) =>
+    prisma.colour.create({ data: { name, slug, hex } });
+
+  return {
+    terracotta: await make("Terracotta", "terracotta", "#C08457"),
+    dustyRose: await make("Dusty Rose", "dusty-rose", "#D9A6A0"),
+    blush: await make("Blush", "blush", "#E4B7B2"),
+    cream: await make("Cream", "cream", "#EFE9DC"),
+    natural: await make("Natural", "natural", "#D8CDB8"),
+    mustard: await make("Mustard", "mustard", "#D9A441"),
+    forest: await make("Forest Green", "forest-green", "#2E4A3B"),
+    sage: await make("Sage", "sage", "#B6C7A1"),
+    charcoal: await make("Charcoal", "charcoal", "#3C3B3F"),
+  };
+}
+
 type Materials = Awaited<ReturnType<typeof seedMaterials>>;
 type Categories = Awaited<ReturnType<typeof seedCategories>>;
+type Colours = Awaited<ReturnType<typeof seedColours>>;
 
 // ─── Products + ready-made pieces ────────────────────────────────────────────
 // Each Product is the shared listing; its ReadyMadeItems are the one-of-a-kind
 // pieces the catalog grid renders as cards. `connect` links to already-created
 // categories (M:N). Prices are integer cents.
-async function seedProducts(categories: Categories) {
+async function seedProducts(categories: Categories, colours: Colours) {
   // Non-customizable products, created with their pieces nested in one call.
   await prisma.product.create({
     data: {
@@ -192,14 +216,18 @@ async function seedProducts(categories: Categories) {
           {
             description: "Terracotta cotton with a cream zip.",
             images: ["products/zip-pouch/terracotta"],
+            colours: { connect: [{ id: colours.terracotta.id }] },
           },
           {
             description: "Dusty rose cotton, fully lined.",
             images: ["products/zip-pouch/dusty-rose"],
+            colours: { connect: [{ id: colours.dustyRose.id }] },
           },
           {
             description: "Ditsy floral cotton — one of a kind.",
             images: ["products/zip-pouch/floral"],
+            // A print, so more than one colour — exercises multi-colour tagging.
+            colours: { connect: [{ id: colours.cream.id }, { id: colours.dustyRose.id }] },
           },
         ],
       },
@@ -221,6 +249,7 @@ async function seedProducts(categories: Categories) {
           {
             description: "Mustard canvas top with a natural linen backing.",
             images: ["products/table-runner/mustard"],
+            colours: { connect: [{ id: colours.mustard.id }, { id: colours.natural.id }] },
             // No `priceCents` here → this piece falls back to product.priceCents.
           },
         ],
@@ -248,10 +277,12 @@ async function seedProducts(categories: Categories) {
           {
             description: "Cream cotton yarn, natural wooden handles.",
             images: ["products/market-bag/cream"],
+            colours: { connect: [{ id: colours.cream.id }] },
           },
           {
             description: "Forest green cotton yarn.",
             images: ["products/market-bag/forest"],
+            colours: { connect: [{ id: colours.forest.id }] },
           },
         ],
       },
@@ -275,12 +306,14 @@ async function seedProducts(categories: Categories) {
           {
             description: "Blush pink wool.",
             images: ["products/beanie/blush"],
+            colours: { connect: [{ id: colours.blush.id }] },
           },
           {
             // Sold — demonstrates the `available: false` state in the grid.
             description: "Forest green wool.",
             images: ["products/beanie/forest"],
             available: false,
+            colours: { connect: [{ id: colours.forest.id }] },
           },
         ],
       },
@@ -295,7 +328,11 @@ async function seedProducts(categories: Categories) {
 //
 // INVARIANT (schema comment on Slot): every material in a slot's palette must
 // share the slot's `unit`. All three palettes below are METRE fabrics. ✓
-async function seedCustomizableTote(materials: Materials, categories: Categories) {
+async function seedCustomizableTote(
+  materials: Materials,
+  categories: Categories,
+  colours: Colours,
+) {
   const svg = `<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
   <path id="body" d="M40 70 H160 L150 180 H50 Z" />
   <path id="pocket" d="M75 110 H125 V160 H75 Z" />
@@ -328,6 +365,7 @@ async function seedCustomizableTote(materials: Materials, categories: Categories
               "products/linen-tote/natural-back",
               "products/linen-tote/natural-detail",
             ],
+            colours: { connect: [{ id: colours.natural.id }] },
           },
           {
             description: "Sage linen body with charcoal denim handles.",
@@ -336,6 +374,7 @@ async function seedCustomizableTote(materials: Materials, categories: Categories
               "products/linen-tote/sage-back",
               "products/linen-tote/sage-detail",
             ],
+            colours: { connect: [{ id: colours.sage.id }, { id: colours.charcoal.id }] },
             // Item-level care OVERRIDE: the denim handles need different first-wash
             // care than the plain-linen parent — exercises careFor's override path.
             care: "Wash cold and separately for the first few washes — the charcoal denim handles can bleed onto the sage linen. After that, care for it like the linen tote.",
@@ -441,19 +480,21 @@ async function main() {
   await reset();
   const materials = await seedMaterials();
   const categories = await seedCategories();
-  await seedProducts(categories);
-  await seedCustomizableTote(materials, categories);
+  const colours = await seedColours();
+  await seedProducts(categories, colours);
+  await seedCustomizableTote(materials, categories, colours);
   await seedUsers();
 
   // A quick tally so the run reports what it wrote.
-  const [products, pieces, mats, users] = await Promise.all([
+  const [products, pieces, mats, cols, users] = await Promise.all([
     prisma.product.count(),
     prisma.readyMadeItem.count(),
     prisma.material.count(),
+    prisma.colour.count(),
     prisma.user.count(),
   ]);
   console.log(
-    `Seeded: ${products} products, ${pieces} ready-made pieces, ${mats} materials, ${users} users.`,
+    `Seeded: ${products} products, ${pieces} ready-made pieces, ${mats} materials, ${cols} colours, ${users} users.`,
   );
 }
 
