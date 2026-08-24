@@ -540,8 +540,8 @@
      (--card-bg → --color-card, --line → --color-line, --shadow-sm → --shadow-card,
      --main → --color-primary, --main-tint → --color-primary-tint, --ink →
      --color-ink, --ink-soft → --color-ink-soft, --sage-tint → --color-sage-tint,
-     --chip-ink → --color-chip-ink). The mockup's Fabric-colour swatch filter is
-     intentionally omitted — that filter is deferred (docs/data-model.md).
+     --chip-ink → --color-chip-ink). The Fabric-colour swatch filter landed in #68
+     (.swatch-filter below).
 
      Two structural swaps from the mockup, for accessibility + server-side filtering:
        • category rows are <Link>s (real navigation, no JS), so the mockup's
@@ -641,6 +641,36 @@
     accent-color: var(--color-primary);
     width: 16px;
     height: 16px;
+  }
+
+  /* Fabric-colour swatch filter (#68) — ported from the mockup's .swatch-filter: a
+     wrap of colour circles. Each is a <Link> (real navigation, no JS, like the category
+     rows), its fill set inline from the colour's hex; the active one gets a primary ring
+     via aria-current, and clicking it again clears the filter (toggle). A faint inset
+     ring keeps pale swatches visible. */
+  .swatch-filter {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 4px;
+  }
+  .swatch-filter a {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    box-shadow: inset 0 0 0 1.5px rgb(0 0 0 / 0.08);
+    cursor: pointer;
+    transition:
+      transform 0.15s,
+      box-shadow 0.15s;
+  }
+  .swatch-filter a:hover {
+    transform: scale(1.15);
+  }
+  .swatch-filter a[aria-current="true"] {
+    box-shadow:
+      0 0 0 2px var(--color-card),
+      0 0 0 4px var(--color-primary);
   }
 
   /* Price section — the mockup styled these inline; lifted here as classes. The range
