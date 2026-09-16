@@ -35,7 +35,9 @@ import type { ShopQuery } from "@/lib/shop-query";
 export function listAvailableItems() {
   return getPrisma().readyMadeItem.findMany({
     where: { available: true, product: { active: true } },
-    include: { product: { include: { categories: true } } },
+    // `colours` (#68) rides along on each item — the sidebar colour filter reads it
+    // (colourOptions builds the swatches; applyShopQuery narrows on it in memory).
+    include: { product: { include: { categories: true } }, colours: true },
     // Newest first — the default the mockup's sort dropdown opens on. The other sorts
     // (price, most loved) arrive with the sort UI in #44.
     //
@@ -274,6 +276,13 @@ export function applyShopQuery(items: CatalogItem[], query: ShopQuery): CatalogI
       return false;
     }
 
+    // Colour (#68): when one is chosen, keep only pieces tagged with it. Colour is M:N on
+    // the PIECE (a print can carry several), so we match ANY of the item's colours by slug
+    // — the in-memory twin of the docs' `colours: { some: { slug } }`.
+    if (query.colour && !item.colours.some((colour) => colour.slug === query.colour)) {
+      return false;
+    }
+
     // Availability is an OR of two independent checkboxes (docs/data-model.md):
     //   Ready to ship → the item is in stock (`available`) — true of every grid item here
     //   Customizable  → the parent product offers the configurator
@@ -349,6 +358,48 @@ export function categoryOptions(items: CatalogItem[]): CategoryOption[] {
 }
 
 /**
+ * One selectable colour in the filter sidebar (#68): its display name, its URL slug, the
+ * hex to paint the swatch, and how many available pieces carry it.
+ */
+export type ColourOption = { slug: string; name: string; hex: string; count: number };
+
+/**
+ * The colour swatches for the filter sidebar (#68) — the exact twin of categoryOptions,
+ * but reading each item's `colours` (M:N on the PIECE, not the product). Derived from the
+ * SAME item list the grid uses, so a colour appears only when something in it is actually
+ * for sale — no empty swatches.
+ *
+ * PURE — no DB, no React. A piece can carry several colours (a print), so one item adds +1
+ * to EACH of its colours; the tallies overlap on purpose, like any tag count. Counts are
+ * over ALL in-stock items, independent of the other active filters, matching how the
+ * category tallies behave.
+ *
+ * Sorted alphabetically for a stable order (Colour has no manual sort column), same as
+ * categoryOptions — localeCompare keeps accents ordered the way a reader expects.
+ */
+export function colourOptions(items: CatalogItem[]): ColourOption[] {
+  const bySlug = new Map<string, ColourOption>();
+
+  for (const item of items) {
+    for (const colour of item.colours) {
+      const existing = bySlug.get(colour.slug);
+      if (existing) {
+        existing.count += 1;
+      } else {
+        bySlug.set(colour.slug, {
+          slug: colour.slug,
+          name: colour.name,
+          hex: colour.hex,
+          count: 1,
+        });
+      }
+    }
+  }
+
+  return [...bySlug.values()].sort((a, b) => a.name.localeCompare(b.name));
+}
+
+/**
  * The top of the price slider's range, in whole euros (#44). Derived from the priciest
  * available item (through the one price rule), rounded UP to the nearest 10 so the slider
  * ends on a tidy number — a €86 top item gives a €90 slider. Floored at 10 so an empty or
@@ -387,7 +438,9 @@ export async function listRelatedCards(product: ProductDetail, limit = 4): Promi
 
   const items = await getPrisma().readyMadeItem.findMany({
     where: { available: true, product: { active: true, id: { not: product.id } } },
-    include: { product: { include: { categories: true } } },
+    // Same shape (and CatalogItem type) as the grid query — colours included to match,
+    // though the related row itself doesn't filter by colour.
+    include: { product: { include: { categories: true } }, colours: true },
     orderBy: [{ createdAt: "desc" }, { id: "desc" }],
   });
 

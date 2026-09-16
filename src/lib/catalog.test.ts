@@ -1,10 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
 
-import type { Category, Product, ReadyMadeItem } from "@/generated/prisma/client";
+import type { Category, Colour, Product, ReadyMadeItem } from "@/generated/prisma/client";
 import {
   applyShopQuery,
   careFor,
   categoryOptions,
+  colourOptions,
   itemOptionsFor,
   itemsToCards,
   priceCeilingEuros,
@@ -119,14 +120,28 @@ function makeCategory(overrides: Partial<Category> = {}): Category {
   };
 }
 
+function makeColour(overrides: Partial<Colour> = {}): Colour {
+  return {
+    id: "col_1",
+    createdAt: new Date("2026-01-01T00:00:00.000Z"),
+    updatedAt: new Date("2026-01-01T00:00:00.000Z"),
+    name: "Sage",
+    slug: "sage",
+    hex: "#B6C7A1",
+    ...overrides,
+  };
+}
+
 function makeCatalogItem(
   item: Partial<ReadyMadeItem>,
   product: Partial<Product>,
   categories: Category[] = [],
+  colours: Colour[] = [],
 ): CatalogItem {
   return {
     ...makeItem(item),
     product: { ...makeProduct(product), categories },
+    colours,
   };
 }
 
@@ -330,6 +345,7 @@ describe("itemOptionsFor", () => {
 function makeQuery(overrides: Partial<ShopQuery> = {}): ShopQuery {
   return {
     category: null,
+    colour: null,
     ready: true,
     customizable: true,
     maxPriceCents: null,
@@ -342,6 +358,11 @@ function makeQuery(overrides: Partial<ShopQuery> = {}): ShopQuery {
 const bags = makeCategory({ id: "cat_bags", slug: "bags-totes", name: "Bags & totes" });
 const knitwear = makeCategory({ id: "cat_knit", slug: "knitwear", name: "Knitwear" });
 const pouches = makeCategory({ id: "cat_pouch", slug: "pouches", name: "Pouches" });
+
+// Reusable colour rows for the colour filter/tally tests (#68).
+const sage = makeColour({ id: "col_sage", slug: "sage", name: "Sage", hex: "#B6C7A1" });
+const clay = makeColour({ id: "col_clay", slug: "terracotta", name: "Terracotta", hex: "#C08457" });
+const cream = makeColour({ id: "col_cream", slug: "cream", name: "Cream", hex: "#EFE9DC" });
 
 describe("applyShopQuery", () => {
   it("returns all items in input order when nothing is filtered", () => {
@@ -359,6 +380,27 @@ describe("applyShopQuery", () => {
     ];
     expect(applyShopQuery(items, makeQuery({ category: "knitwear" })).map((i) => i.id)).toEqual([
       "b",
+    ]);
+  });
+
+  it("keeps only pieces tagged with the chosen colour", () => {
+    const items = [
+      makeCatalogItem({ id: "a", productId: "p1" }, { id: "p1" }, [], [sage]),
+      makeCatalogItem({ id: "b", productId: "p2" }, { id: "p2" }, [], [clay]),
+    ];
+    expect(applyShopQuery(items, makeQuery({ colour: "terracotta" })).map((i) => i.id)).toEqual([
+      "b",
+    ]);
+  });
+
+  it("matches a piece by ANY of its colours (a print carries several)", () => {
+    const items = [
+      makeCatalogItem({ id: "print", productId: "p1" }, { id: "p1" }, [], [cream, clay]),
+      makeCatalogItem({ id: "solid", productId: "p2" }, { id: "p2" }, [], [sage]),
+    ];
+    // The print is tagged cream + terracotta, so filtering by either keeps it.
+    expect(applyShopQuery(items, makeQuery({ colour: "cream" })).map((i) => i.id)).toEqual([
+      "print",
     ]);
   });
 
@@ -473,6 +515,37 @@ describe("categoryOptions", () => {
 
   it("returns an empty array for no items", () => {
     expect(categoryOptions([])).toEqual([]);
+  });
+});
+
+describe("colourOptions", () => {
+  it("emits one row per present colour with its count and hex, sorted by name", () => {
+    const items = [
+      makeCatalogItem({ id: "a", productId: "p1" }, { id: "p1" }, [], [clay]),
+      makeCatalogItem({ id: "b", productId: "p2" }, { id: "p2" }, [], [sage]),
+      makeCatalogItem({ id: "c", productId: "p3" }, { id: "p3" }, [], [sage]),
+    ];
+    // Cream never appears — no in-stock piece carries it. Alphabetical by name:
+    // Sage before Terracotta.
+    expect(colourOptions(items)).toEqual([
+      { slug: "sage", name: "Sage", hex: "#B6C7A1", count: 2 },
+      { slug: "terracotta", name: "Terracotta", hex: "#C08457", count: 1 },
+    ]);
+  });
+
+  it("counts a piece in EVERY colour it carries (a print overlaps)", () => {
+    const items = [
+      makeCatalogItem({ id: "a", productId: "p1" }, { id: "p1" }, [], [cream, clay]),
+      makeCatalogItem({ id: "b", productId: "p2" }, { id: "p2" }, [], [clay]),
+    ];
+    expect(colourOptions(items)).toEqual([
+      { slug: "cream", name: "Cream", hex: "#EFE9DC", count: 1 },
+      { slug: "terracotta", name: "Terracotta", hex: "#C08457", count: 2 }, // both pieces
+    ]);
+  });
+
+  it("returns an empty array for no items", () => {
+    expect(colourOptions([])).toEqual([]);
   });
 });
 

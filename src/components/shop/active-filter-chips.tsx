@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import type { CategoryOption } from "@/lib/catalog";
+import type { CategoryOption, ColourOption } from "@/lib/catalog";
 import { removeParams, type ShopQuery } from "@/lib/shop-query";
 
 /**
@@ -18,10 +18,11 @@ import { removeParams, type ShopQuery } from "@/lib/shop-query";
 type ActiveFilterChipsProps = {
   query: ShopQuery;
   categories: CategoryOption[]; // resolves the category slug to its display name
+  colours: ColourOption[]; // resolves the colour slug to its display name (#68)
   current: URLSearchParams;
 };
 
-export function ActiveFilterChips({ query, categories, current }: ActiveFilterChipsProps) {
+export function ActiveFilterChips({ query, categories, colours, current }: ActiveFilterChipsProps) {
   // Each chip: what it says, and which param key(s) its × removes.
   const chips: { label: string; paramsToClear: string[] }[] = [];
 
@@ -31,6 +32,12 @@ export function ActiveFilterChips({ query, categories, current }: ActiveFilterCh
     const name =
       categories.find((option) => option.slug === query.category)?.name ?? query.category;
     chips.push({ label: name, paramsToClear: ["category"] });
+  }
+
+  if (query.colour) {
+    // Same slug→name resolution as category, with the same slug fallback (#68).
+    const name = colours.find((option) => option.slug === query.colour)?.name ?? query.colour;
+    chips.push({ label: name, paramsToClear: ["colour"] });
   }
 
   // Only when availability deviates from the default (both boxes checked).

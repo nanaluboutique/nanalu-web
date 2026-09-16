@@ -65,9 +65,31 @@ model ReadyMadeItem {
   priceCents  Int? // optional override; falls back to product.priceCents
   available   Boolean  @default(true) // true = for sale, false = sold
 
+  colours    Colour[] // this piece's fabric colour(s) — the browse tag (#68), M:N
   orderItems OrderItem[] // ready-made lines that referenced this piece (#29)
 
   @@index([productId])
+}
+
+/// A fabric-colour browse tag on a ready-made piece (#68). A small admin-managed
+/// vocabulary (Sage, Clay, Cream, ...), the SAME shape as Category — name + slug +
+/// a display hex — but it tags the PIECE, not the Product: two totes of one style
+/// differ only by colour, so colour is a property of the individual piece.
+///
+/// This is a SEPARATE thing from Material(kind = COLOUR): that's the configurator's
+/// paint (it carries stock/unit and gets reserved). This is a cheap descriptive
+/// label for the sidebar colour filter — no stock, nothing reserved — which is why
+/// ready-made pieces stay "not linked to Material" (docs/data-model.md).
+model Colour {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  name String // display name, e.g. "Sage"
+  slug String @unique // filter/URL key, e.g. "sage"
+  hex  String // the sidebar swatch colour, e.g. "#B6C7A1"
+
+  items ReadyMadeItem[] // implicit M:N (like Category⇄Product) — pieces in this colour
 }
 
 enum MaterialKind {

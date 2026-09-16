@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
-import type { CategoryOption } from "@/lib/catalog";
+import type { CategoryOption, ColourOption } from "@/lib/catalog";
 import type { ShopQuery } from "@/lib/shop-query";
 
 import { ActiveFilterChips } from "./active-filter-chips";
@@ -13,6 +13,7 @@ import { ActiveFilterChips } from "./active-filter-chips";
 function makeQuery(overrides: Partial<ShopQuery> = {}): ShopQuery {
   return {
     category: null,
+    colour: null,
     ready: true,
     customizable: true,
     maxPriceCents: null,
@@ -22,6 +23,7 @@ function makeQuery(overrides: Partial<ShopQuery> = {}): ShopQuery {
 }
 
 const CATEGORIES: CategoryOption[] = [{ slug: "pouches", name: "Pouches", count: 5 }];
+const COLOURS: ColourOption[] = [{ slug: "sage", name: "Sage", hex: "#B6C7A1", count: 3 }];
 
 describe("ActiveFilterChips", () => {
   it("renders nothing when no filter is active", () => {
@@ -29,6 +31,7 @@ describe("ActiveFilterChips", () => {
       <ActiveFilterChips
         query={makeQuery()}
         categories={CATEGORIES}
+        colours={COLOURS}
         current={new URLSearchParams("")}
       />,
     );
@@ -41,6 +44,7 @@ describe("ActiveFilterChips", () => {
       <ActiveFilterChips
         query={makeQuery({ category: "pouches", maxPriceCents: 3000 })}
         categories={CATEGORIES}
+        colours={COLOURS}
         current={new URLSearchParams("category=pouches&maxPrice=30")}
       />,
     );
@@ -64,11 +68,30 @@ describe("ActiveFilterChips", () => {
       <ActiveFilterChips
         query={makeQuery({ category: "mystery" })}
         categories={CATEGORIES}
+        colours={COLOURS}
         current={new URLSearchParams("category=mystery")}
       />,
     );
 
     expect(screen.getByRole("link", { name: "Remove filter: mystery" })).toBeInTheDocument();
+  });
+
+  it("renders a colour chip whose × clears only the colour param", () => {
+    render(
+      <ActiveFilterChips
+        query={makeQuery({ colour: "sage", category: "pouches" })}
+        categories={CATEGORIES}
+        colours={COLOURS}
+        current={new URLSearchParams("category=pouches&colour=sage")}
+      />,
+    );
+
+    // The colour chip shows the display name (Sage, not "sage") and its × drops only
+    // `colour`, leaving the category behind.
+    expect(screen.getByRole("link", { name: "Remove filter: Sage" })).toHaveAttribute(
+      "href",
+      "/shop?category=pouches",
+    );
   });
 
   it("shows availability as ONE coupled chip whose × clears both ready and custom", () => {
@@ -77,6 +100,7 @@ describe("ActiveFilterChips", () => {
       <ActiveFilterChips
         query={makeQuery({ ready: false, customizable: false })}
         categories={CATEGORIES}
+        colours={COLOURS}
         current={new URLSearchParams("ready=0&custom=0&sort=price-asc")}
       />,
     );

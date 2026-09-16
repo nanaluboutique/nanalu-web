@@ -43,6 +43,7 @@ export const DEFAULT_SORT: ShopSort = SORT_OPTIONS[0].value;
  * The filter/sort state as a plain object the rest of the app reads. Every field has a
  * well-defined default so the page never has to null-check the URL:
  *   category      — a Category slug, or null = "All pieces"
+ *   colour        — a Colour slug, or null = "any colour" (#68)
  *   ready         — "Ready to ship" checkbox (default ON)
  *   customizable  — "Customizable" checkbox (default ON)
  *   maxPriceCents — upper price cap in integer cents, or null = no cap
@@ -50,6 +51,7 @@ export const DEFAULT_SORT: ShopSort = SORT_OPTIONS[0].value;
  */
 export type ShopQuery = {
   category: string | null;
+  colour: string | null;
   ready: boolean;
   customizable: boolean;
   maxPriceCents: number | null;
@@ -84,6 +86,7 @@ export function parseShopQuery(params: URLSearchParams): ShopQuery {
 
   return {
     category: params.get("category") || null,
+    colour: params.get("colour") || null,
     ready: params.get("ready") !== "0",
     customizable: params.get("custom") !== "0",
     maxPriceCents,

@@ -5,12 +5,14 @@ import { Container } from "@/components/layout/container";
 import { ActiveFilterChips } from "@/components/shop/active-filter-chips";
 import { AvailabilityFilter } from "@/components/shop/availability-filter";
 import { CategoryFilter } from "@/components/shop/category-filter";
+import { ColourFilter } from "@/components/shop/colour-filter";
 import { PriceFilter } from "@/components/shop/price-filter";
 import { ProductCard } from "@/components/shop/product-card";
 import { SortDropdown } from "@/components/shop/sort-dropdown";
 import {
   applyShopQuery,
   categoryOptions,
+  colourOptions,
   hasCustomizableWithoutStock,
   itemsToCards,
   listAvailableItems,
@@ -72,6 +74,7 @@ export default async function ShopPage({
 
   const cards = itemsToCards(applyShopQuery(items, query)); // filtered + sorted → cards
   const categories = categoryOptions(items); // sidebar rows (from the FULL list)
+  const colours = colourOptions(items); // sidebar swatches (from the FULL list)
   const ceilingEuros = priceCeilingEuros(items); // price slider's top end
   const totalCount = items.length; // "All pieces N"
   const resultCount = cards.length; // toolbar "N pieces"
@@ -104,6 +107,7 @@ export default async function ShopPage({
             current={params}
           />
           <AvailabilityFilter />
+          <ColourFilter colours={colours} activeColour={query.colour} current={params} />
           <PriceFilter ceilingEuros={ceilingEuros} />
         </aside>
 
@@ -112,7 +116,12 @@ export default async function ShopPage({
             <span className="count">
               {resultCount} {resultCount === 1 ? "piece" : "pieces"}
             </span>
-            <ActiveFilterChips query={query} categories={categories} current={params} />
+            <ActiveFilterChips
+              query={query}
+              categories={categories}
+              colours={colours}
+              current={params}
+            />
             <SortDropdown />
           </div>
 
