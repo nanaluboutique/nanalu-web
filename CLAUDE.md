@@ -68,24 +68,33 @@ Package manager is **npm** (committed `package-lock.json`). Node **24** (matches
   2. **Pure-function backfill — #53** (unit tests for `imageUrl()` and `priceCentsFor()` — deterministic, no DB/browser). Blocked by #52.
   3. **Deferred heavier layers — no issue yet, DON'T FORGET:**
      - **Component tests** (React Testing Library): our current components are thin wrappers (`AssetImage`) not worth unit-testing. **Resurface when** we ship components with real behaviour — the shop grid (#43), category filters/sort (#44), or the Phase 3 configurator. File the issue then.
-     - **DB-integration tests** for the catalog queries (`listAvailablePieces`, `getProductBySlug`) — these need a throwaway test Postgres in CI, so they're a bigger lift. **Resurface when** we either stand up a test DB in CI or next touch query logic (pagination/filters in #44, or cart/checkout persistence later). File the issue then.
+     - **DB-integration tests — #60** ✅ landed — for the catalog queries (`listAvailableItems`, `getProductBySlug`, `hasCustomizableWithoutStock`), run against a real throwaway Postgres. See "DB-integration tests" below for how they're wired and run.
 
   Claude: proactively suggest opening the deferred issue(s) when work hits one of those triggers — don't wait to be asked.
+
+- **Two test suites, split by cost.** Most tests are pure/component and run with **`npm test`** (no database). The **DB-integration** suite (#60) is separate because it needs a real Postgres:
+  - **Files:** named `*.db.test.ts` (e.g. `src/lib/catalog.db.test.ts`). The default `vitest.config.ts` **excludes** this pattern, so `npm test` never needs a database; they run only under **`vitest.db.config.ts`** (node env, `server-only` aliased to an empty stub so the server-only data layer imports, `fileParallelism: false` since every test truncates the shared DB).
+  - **Run them:** `npm run db:test:up` once (starts the throwaway `db-test` container on **port 5433**, behind the compose `test` profile — separate from your dev DB so tests can wipe freely), then **`npm run test:db`** (migrates the test DB, then runs the suite). `npm run db:test:down` removes just that container.
+  - **Safety + isolation:** `vitest.db.setup.ts` refuses to run unless `DATABASE_URL` names port 5433 or db `nanalu_test` (so a misconfig can't truncate real data), and wipes all tables **before each test** (FK-safe order, mirroring `prisma/seed.ts`) so each test builds its own fixture from empty.
+  - **CI:** a dedicated **`db-tests`** job in `ci.yml` runs them against a `postgres:17-alpine` service container; the `verify` job stays database-free.
 
 ### Database (local: Docker + Prisma)
 
 Local dev DB is **PostgreSQL in a Docker container** (`docker-compose.yml`), accessed via **Prisma** (ORM). Needs Docker Desktop running.
 
-| Task              | Command               | Notes                                                                                   |
-| ----------------- | --------------------- | --------------------------------------------------------------------------------------- |
-| Start DB          | `npm run db:up`       | Starts Postgres (detached) and waits until it accepts connections.                      |
-| Stop DB           | `npm run db:down`     | Stops it; data persists in a named volume.                                              |
-| Migrate (dev)     | `npm run db:migrate`  | Create + apply a migration from schema changes (`prisma migrate dev`).                  |
-| Seed              | `npm run db:seed`     | Wipe + re-insert realistic dev data (`prisma db seed` → `prisma/seed.ts`). Re-runnable. |
-| Studio            | `npm run db:studio`   | GUI to browse/edit data (`prisma studio`).                                              |
-| Regenerate client | `npm run db:generate` | Rebuild the type-safe client into `src/generated/prisma`.                               |
-| Reset (dev)       | `npm run db:reset`    | Wipe + replay all migrations. **Dev only — destroys data.**                             |
-| Deploy migrations | `npm run db:deploy`   | Apply pending migrations without creating new ones (CI/prod).                           |
+| Task                 | Command                | Notes                                                                                   |
+| -------------------- | ---------------------- | --------------------------------------------------------------------------------------- |
+| Start DB             | `npm run db:up`        | Starts Postgres (detached) and waits until it accepts connections.                      |
+| Stop DB              | `npm run db:down`      | Stops it; data persists in a named volume.                                              |
+| Migrate (dev)        | `npm run db:migrate`   | Create + apply a migration from schema changes (`prisma migrate dev`).                  |
+| Seed                 | `npm run db:seed`      | Wipe + re-insert realistic dev data (`prisma db seed` → `prisma/seed.ts`). Re-runnable. |
+| Studio               | `npm run db:studio`    | GUI to browse/edit data (`prisma studio`).                                              |
+| Regenerate client    | `npm run db:generate`  | Rebuild the type-safe client into `src/generated/prisma`.                               |
+| Reset (dev)          | `npm run db:reset`     | Wipe + replay all migrations. **Dev only — destroys data.**                             |
+| Deploy migrations    | `npm run db:deploy`    | Apply pending migrations without creating new ones (CI/prod).                           |
+| Start test DB        | `npm run db:test:up`   | Start the throwaway `db-test` Postgres (port 5433, `test` profile) for the DB tests.    |
+| Stop test DB         | `npm run db:test:down` | Remove just the `db-test` container + its data (leaves the dev DB untouched).           |
+| DB-integration tests | `npm run test:db`      | Migrate the test DB, then run the `*.db.test.ts` suite (`vitest.db.config.ts`).         |
 
 - **Source of truth:** `prisma/schema.prisma` (models); migrations live in `prisma/migrations/` (committed, replayable).
 - **CLI config:** `prisma.config.ts` (Prisma 7) points the CLI at the schema/migrations and reads `DATABASE_URL` from `.env.local` (see Environment). Old tutorials put the `url` in `schema.prisma` — Prisma 7 moved it here.

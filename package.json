@@ -20,6 +20,9 @@
     "db:generate": "prisma generate",
     "db:reset": "prisma migrate reset",
     "db:deploy": "prisma migrate deploy",
+    "db:test:up": "docker compose --profile test up -d --wait db-test",
+    "db:test:down": "docker compose --profile test rm -sfv db-test",
+    "test:db": "export DATABASE_URL=\"${DATABASE_URL:-postgresql://nanalu:nanalu@localhost:5433/nanalu_test?schema=public}\"; prisma migrate deploy && vitest run --config vitest.db.config.ts",
     "prepare": "husky"
   },
   "lint-staged": {

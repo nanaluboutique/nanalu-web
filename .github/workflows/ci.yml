@@ -45,6 +45,55 @@ jobs:
         env:
           NEXT_TELEMETRY_DISABLED: "1"
 
+  db-tests:
+    name: DB-integration tests
+    runs-on: ubuntu-latest
+    # Separate from `verify` on purpose (#60): these need a real Postgres, so they
+    # run under their own config (vitest.db.config.ts) against a throwaway service
+    # container — while `npm test` in `verify` stays fast and database-free.
+    services:
+      # An ephemeral Postgres for the duration of this job. Mapped to host port 5433
+      # and named `nanalu_test` so the default DATABASE_URL in the `test:db` script
+      # matches with no extra env — the SAME command works locally and here.
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: nanalu
+          POSTGRES_PASSWORD: nanalu
+          POSTGRES_DB: nanalu_test
+        ports:
+          - 5433:5432
+        # Hold the job until Postgres actually accepts connections (not just
+        # "container started"), so `migrate deploy` doesn't race a cold start.
+        options: >-
+          --health-cmd "pg_isready -U nanalu -d nanalu_test"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 5
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # This job actually QUERIES the database, so it needs the generated Prisma
+      # client (gitignored). `verify` gets it via its `build` step; here we generate
+      # it explicitly before the tests run.
+      - name: Generate Prisma client
+        run: npm run db:generate
+
+      # Migrates the throwaway DB, then runs the DB suite. `test:db`'s default
+      # DATABASE_URL already targets localhost:5433/nanalu_test — the service above.
+      - name: Migrate & run DB-integration tests
+        run: npm run test:db
+
   docker:
     name: Docker image build & smoke test
     runs-on: ubuntu-latest

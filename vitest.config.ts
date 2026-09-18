@@ -1,6 +1,6 @@
 import { fileURLToPath } from "node:url";
 import react from "@vitejs/plugin-react";
-import { defineConfig } from "vitest/config";
+import { configDefaults, defineConfig } from "vitest/config";
 
 export default defineConfig({
   // Lets Vitest transform JSX/TSX, so component tests (React Testing Library)
@@ -19,6 +19,14 @@ export default defineConfig({
 
     // Runs once before the suite — registers the jest-dom matchers (below).
     setupFiles: ["./vitest.setup.ts"],
+
+    // Keep the DB-integration tests (#60) OUT of the default `npm test` run: they
+    // need a real throwaway Postgres and run under their own config
+    // (vitest.db.config.ts, driven by `npm run test:db`). Excluding them here means
+    // `npm test` stays fast and database-free — the pure/component suite CI's main
+    // job runs. We spread Vitest's own defaults first, then add our one pattern, so
+    // node_modules/dist/etc. stay excluded too.
+    exclude: [...configDefaults.exclude, "**/*.db.test.ts"],
   },
 
   resolve: {
