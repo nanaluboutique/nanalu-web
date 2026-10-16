@@ -20,6 +20,8 @@ import { config } from "dotenv";
 
 import { MaterialKind, MaterialUnit, PrismaClient } from "@/generated/prisma/client";
 
+import { resetDatabase } from "./reset";
+
 // Load our single local-env file (gitignored). We resolve it relative to THIS
 // file (../ from prisma/ = project root), not the current working directory, so
 // `tsx prisma/seed.ts` works when run from any folder — not just the repo root.
@@ -42,25 +44,6 @@ if (!connectionString) {
 // DATABASE_URL our Docker Postgres listens on (see prisma.config.ts / .env.local).
 const adapter = new PrismaPg({ connectionString });
 const prisma = new PrismaClient({ adapter });
-
-// ─── Reset ──────────────────────────────────────────────────────────────────
-// Delete children before parents so no FK is ever left dangling. Implicit M:N
-// join tables (_CategoryToProduct, _ProductToUser, _MaterialToSlot) are cleared
-// automatically when their connected rows go, so they need no explicit delete.
-async function reset() {
-  await prisma.reservation.deleteMany();
-  await prisma.orderItem.deleteMany();
-  await prisma.order.deleteMany();
-  await prisma.region.deleteMany();
-  await prisma.slot.deleteMany();
-  await prisma.customizationConfig.deleteMany();
-  await prisma.readyMadeItem.deleteMany();
-  await prisma.product.deleteMany();
-  await prisma.category.deleteMany();
-  await prisma.colour.deleteMany();
-  await prisma.material.deleteMany();
-  await prisma.user.deleteMany();
-}
 
 // ─── Materials (the configurator's "paint") ──────────────────────────────────
 // Two kinds, discriminated by `kind`. FABRIC carries a calibrated swatch image +
@@ -477,7 +460,7 @@ async function main() {
     throw new Error("Refusing to seed: NODE_ENV=production (the seed wipes all tables).");
   }
 
-  await reset();
+  await resetDatabase(prisma);
   const materials = await seedMaterials();
   const categories = await seedCategories();
   const colours = await seedColours();
